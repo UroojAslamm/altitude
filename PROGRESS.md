@@ -4,7 +4,7 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 
 | # | Milestone | Status |
 |---|---|---|
-| M0 | Credentials, repo, Vite, tokens, materials, brand jobs, kit, migrations, auth, PWA, deploy | In progress: repo docs done |
+| M0 | Credentials, repo, Vite, tokens, materials, brand jobs, kit, migrations, auth, PWA, deploy | In progress: scaffold, kit, auth UI, migrations written and pushed. Migrations NOT yet applied: DATABASE_URL needs the DB password |
 | M1 | Seed, DrinkArt, menu, item detail, cart, place_order, pricing tests | Not started |
 | M2 | Tracker, barista, meters, tiers, golden path e2e | Not started |
 | M3 | Admin, favorites, popular, offers, Common Hour | Not started |
