@@ -15,3 +15,9 @@
 - Pitch deck: build a `.pptx` from the PRD pitch outline with real screenshots, after M8. Team name: Team Pythons.
 
 ## Build decisions
+
+- Logo: the symbol traced well, but the 150px wordmark came out blobby. `Logo` uses the traced symbol with a typeset Barlow Condensed wordmark.
+- `VITE_DEMO_PASSWORD` added for the demo login buttons. It is public in the bundle by design. Rotate after the event.
+- `orders.customer_name`, `reviews.author_name`, `drink_submissions.author_name` snapshots keep names readable without opening `profiles` RLS.
+- Barista writes go through RPCs (`set_item_available`, `set_seat_status`, `set_accepting_orders`).
+- `orders.free_shot_fils` records the free extra shot so the receipt can show it.

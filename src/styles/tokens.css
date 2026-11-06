@@ -1,0 +1,24 @@
+:root {
+  --ink-950: #0b0908;
+  --ink-900: #14110f;
+  --ink-800: #1e1a17;
+  --ink-700: #2a2420;
+  --cream-50: #fbf7ef;
+  --cream-100: #f3ebdd;
+  --cream-300: #cdbfa6;
+  --oak-400: #c99a5b;
+  --oak-600: #a67840;
+  --glow-300: #ffd58a;
+  --glow-500: #f5b14a;
+  --brass-700: #9a6b24;
+  --navy-500: #3a4bb0;
+  --navy-700: #2e3c93;
+  --maroon-700: #6b1b26;
+  --berry-500: #e04b55;
+  --mango-400: #f4b63f;
+  --leaf-500: #5e9b45;
+
+  --scrim: linear-gradient(180deg, rgba(11, 9, 8, 0.35), rgba(11, 9, 8, 0.85));
+  --hairline: rgba(255, 230, 180, 0.16);
+  --tab-h: 72px;
+}
