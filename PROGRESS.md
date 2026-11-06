@@ -9,10 +9,10 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 | M2 | Tracker, barista, meters, tiers, golden path e2e | Done, e2e green |
 | M3 | Admin, favorites, popular, offers, Common Hour | Done, e2e green |
 | M4 | Squad, clubs, events, reviews, seats, Home | Done, e2e green |
-| M5 | Visual polish pass | Not started |
-| M6 | 3D shield, cup, landing | Not started |
-| M7 |  Drink Lab, wheel, vouchers, mood, pairing, analytics, /demo  | Built, 3D excluded. Needs visual review |
-| M8 | Bug bash, README, final e2e | Not started |
+| M5 | Visual polish pass | Done. Screens reviewed at phone and laptop sizes |
+| M6 | 3D shield, cup, landing | Done. Golden path passes with 3D on and off |
+| M7 |  Drink Lab, wheel, vouchers, mood, pairing, analytics, /demo  | Done |
+| M8 | Bug bash, README, final e2e | Done, e2e green |
 | M9 | Final deploy, SUBMISSION.md | Not started |
 | Extra | Pitch deck .pptx (Team Pythons) | Not started |
 

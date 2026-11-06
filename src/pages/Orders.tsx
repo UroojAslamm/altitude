@@ -187,7 +187,7 @@ export function TrackerPage() {
             {can3d() ? (
               <ThreeBoundary fallback={<CupFallback status={o.status} accent={accent} />}>
                 <Suspense fallback={<CupFallback status={o.status} accent={accent} />}>
-                  <CupTracker status={o.status} accent={accent} ahead={queue.data?.ahead_count ?? 0} />
+                  <CupTracker status={o.status} accent={accent} ahead={queue.data?.ahead_count ?? 0} preparingAt={o.preparing_at} />
                 </Suspense>
               </ThreeBoundary>
             ) : <CupFallback status={o.status} accent={accent} />}

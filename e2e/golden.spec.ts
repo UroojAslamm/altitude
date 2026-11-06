@@ -93,6 +93,7 @@ test('sold-out toggle blocks adding in real time', async ({ page, browser }) => 
   await expect(page.getByRole('button', { name: 'Sold out' })).toBeDisabled({ timeout: 20_000 });
 
   await barista.getByRole('switch', { name: 'Espresso available' }).click();
+  await expect(barista.getByRole('switch', { name: 'Espresso available' })).toHaveAttribute('aria-checked', 'true');
   await barista.context().close();
 });
 

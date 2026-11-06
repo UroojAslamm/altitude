@@ -28,6 +28,12 @@ const ACCOUNTS = [
 async function ensureUsers() {
   const existing = must(await db.auth.admin.listUsers({ perPage: 1000 }), 'listUsers').users;
   const ids = {};
+  // Removes accounts left by e2e runs.
+  for (const u of existing) {
+    if (u.email?.endsWith('@altitude.demo') && !ACCOUNTS.some((a) => a.email === u.email)) {
+      must(await db.auth.admin.deleteUser(u.id), 'deleteUser');
+    }
+  }
   for (const a of ACCOUNTS) {
     const found = existing.find((u) => u.email === a.email);
     if (found) {
@@ -217,7 +223,7 @@ async function seedCommunity(items, ids) {
   const s = (n) => ids[`student${n}@altitude.demo`];
 
   // Squad.
-  must(await db.from('squads').delete().eq('code', 'CLIMB1'), 'squad clear');
+  must(await db.from('squads').delete().gte('created_at', '2000-01-01'), 'squad clear');
   const squad = must(await db.from('squads').insert({ name: 'Espresso Sherpas', code: 'CLIMB1', created_by: s(2), squad_meters: 620 }).select().single(), 'squad');
   must(await db.from('squad_members').insert([{ squad_id: squad.id, user_id: s(2) }, { squad_id: squad.id, user_id: s(3) }]), 'squad members');
   must(await db.from('profiles').update({ squad_id: squad.id }).in('id', [s(2), s(3)]), 'squad profiles');
