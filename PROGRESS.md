@@ -13,10 +13,16 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 | M6 | 3D shield, cup, landing | Done. Golden path passes with 3D on and off |
 | M7 |  Drink Lab, wheel, vouchers, mood, pairing, analytics, /demo  | Done |
 | M8 | Bug bash, README, final e2e | Done, e2e green |
-| M9 | Final deploy, SUBMISSION.md | Not started |
-| Extra | Pitch deck .pptx (Team Pythons) | Not started |
+| M9 | Final deploy and SUBMISSION.md | SUBMISSION.md done. Deploy waits on owner Vercel import |
+| Extra | Pitch deck .pptx (Team Pythons) | Done: docs/ASCEND-pitch.pptx. Not rendered here (no LibreOffice), open and check it once |
 
 ## Waiting on owner
-- Supabase project values in `.env.local`
 - Photo B (wall)
 - Vercel import of the GitHub repo
+
+## Morning steps for the owner
+1. vercel.com > Add New > Project > import `UroojAslamm/altitude`. Framework: Vite.
+2. Before deploying, add these Environment Variables, copied from `.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_PASSWORD`. Never add the service role key or `DATABASE_URL`.
+3. Deploy. Put the URL in `SUBMISSION.md`, then test on a phone.
+4. Open `docs/ASCEND-pitch.pptx` and check it.
+5. Optional: send Photo B, fix the password in `DATABASE_URL` for future `npm run db:migrate`.

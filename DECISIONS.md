@@ -16,6 +16,9 @@
 
 ## Build decisions
 
+- Migrations 0001 to 0006 were applied through the Supabase SQL editor because `DATABASE_URL` still held a placeholder. They are recorded in `private.schema_migrations`, so `npm run db:migrate` skips them.
+- `.env.production` is not committed. Vercel env vars hold the client values.
+
 - Logo: the symbol traced well, but the 150px wordmark came out blobby. `Logo` uses the traced symbol with a typeset Barlow Condensed wordmark.
 - `VITE_DEMO_PASSWORD` added for the demo login buttons. It is public in the bundle by design. Rotate after the event.
 - `orders.customer_name`, `reviews.author_name`, `drink_submissions.author_name` snapshots keep names readable without opening `profiles` RLS.
