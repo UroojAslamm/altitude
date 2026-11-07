@@ -93,7 +93,7 @@ test('an order reaches Ready by itself in about 15 seconds', async ({ page }) =>
   await page.getByRole('button', { name: 'Place order' }).click();
   await page.waitForURL(/\/orders\/[0-9a-f-]{36}/);
   const start = Date.now();
-  await expect(page.getByTestId('queue')).toContainText('sec');
+  await expect(page.getByTestId('queue')).toContainText(/about (7|8|9|10) min/);
   await expect(page.getByTestId('prepared-by')).toContainText('is preparing your order', { timeout: 10_000 });
   await expect(page.getByRole('alertdialog')).toBeVisible({ timeout: 20_000 });
   expect(Date.now() - start).toBeLessThan(20_000);

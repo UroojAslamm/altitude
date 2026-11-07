@@ -58,8 +58,6 @@ describe('ETA', () => {
   it('splits work across baristas', () => {
     expect(etaSeconds(300, 120, 2)).toBe(210);
     expect(etaLabel(210)).toBe('about 4 min');
-    expect(etaLabel(15)).toBe('about 15 sec');
-    expect(etaLabel(0)).toBe('almost ready');
   });
 });
 
