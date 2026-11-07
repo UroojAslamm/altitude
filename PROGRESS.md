@@ -14,7 +14,7 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 | M7 |  Drink Lab, wheel, vouchers, mood, pairing, analytics, /demo  | Done |
 | M8 | Bug bash, README, final e2e | Done, e2e green |
 | M9 | Final deploy and SUBMISSION.md | SUBMISSION.md done. Deployed to https://altitude-liart.vercel.app |
-| Extra | Pitch deck .pptx (Team Pythons) | Done: docs/ASCEND-pitch.pptx. Not rendered here (no LibreOffice), open and check it once |
+| Extra | Pitch deck .pptx (Team Pythons) | Done: docs/ASCEND-pitch.pptx, rendered in PowerPoint |
 | Extra | Owner review pass: removals, barista name and tips, sounds, coffee machine landing | Done. Migration 0008 applied. See DECISIONS.md |
 
 ## Waiting on owner
