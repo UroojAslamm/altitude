@@ -36,7 +36,6 @@ await phone.getByRole('button', { name: 'Coffee-Free Drinks' }).click();
 await phone.waitForTimeout(800);
 await phone.screenshot({ path: `${out}/smoothies.png` });
 await phone.locator('[data-testid="menu-item"]', { hasText: "Pash n' Shoot" }).click();
-await phone.getByRole('button', { name: /^Small/ }).click();
 await phone.waitForTimeout(600);
 await phone.screenshot({ path: `${out}/item.png` });
 await phone.getByRole('button', { name: 'Add to cart' }).click();
