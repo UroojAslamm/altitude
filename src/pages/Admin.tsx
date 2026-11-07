@@ -336,9 +336,8 @@ export default function AdminPage() {
       <header className="flex flex-wrap items-center gap-2">
         <h1 className="h1-gradient text-4xl">Admin</h1>
         <div className="ml-auto flex flex-wrap gap-2">
-          <Link to="/barista" className="btn btn-secondary glass">Counter</Link>
+          <Link to="/barista" className="btn btn-secondary glass">Barista</Link>
           <Link to="/demo" className="btn btn-secondary glass">Demo</Link>
-          <Link to="/menu" className="btn btn-secondary glass">Student view</Link>
           <Button variant="ghost" onClick={() => void signOut()}>Log out</Button>
         </div>
       </header>

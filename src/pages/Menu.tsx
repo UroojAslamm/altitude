@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Heart, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Page, PageHeader } from '@/components/AppShell';
 import { DrinkArt } from '@/components/DrinkArt';
 import { MoodSheet } from '@/components/MoodSheet';
@@ -10,15 +10,13 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
+import { EMPTY_FILTERS, useMenuFilters } from '@/lib/menuFilters';
 import { useItemOptions, useMenu, useRealtime } from '@/lib/queries';
 import { aed, pinFavorites } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { MenuItem, Option } from '@/lib/types';
 
 const DIETARY = ['dairy-free', 'low-sugar', 'vegan', 'caffeine-free'];
-
-interface Filters { tags: string[]; maxPrice: number; temp: 'any' | 'hot' | 'cold'; caffeine: number | null }
-const EMPTY: Filters = { tags: [], maxPrice: 3000, temp: 'any', caffeine: null };
 
 function useFavorites(uid?: string) {
   return useQuery({
@@ -78,13 +76,11 @@ export function MenuPage() {
   const menu = useMenu();
   const favorites = useFavorites(session?.user.id);
   useRealtime([{ table: 'menu_items', keys: [['menu']] }], 'menu-live');
-  const [category, setCategory] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState<Filters>(EMPTY);
+  const { category, query, filters, setCategory, setQuery, setFilters } = useMenuFilters();
   const [sheet, setSheet] = useState(false);
   const [mood, setMood] = useState(false);
 
-  const filterCount = filters.tags.length + (filters.maxPrice < EMPTY.maxPrice ? 1 : 0) + (filters.temp !== 'any' ? 1 : 0) + (filters.caffeine !== null ? 1 : 0);
+  const filterCount = filters.tags.length + (filters.maxPrice < EMPTY_FILTERS.maxPrice ? 1 : 0) + (filters.temp !== 'any' ? 1 : 0) + (filters.caffeine !== null ? 1 : 0);
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -128,7 +124,7 @@ export function MenuPage() {
         {menu.isLoading && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-60" />)}</div>}
         {menu.isError && <ErrorState onRetry={() => void menu.refetch()} />}
         {menu.data && items.length === 0 && (
-          <EmptyState title="Nothing matches" body="Try fewer filters." action={<Button variant="secondary" onClick={() => { setFilters(EMPTY); setQuery(''); setCategory(null); }}>Clear all</Button>} />
+          <EmptyState title="Nothing matches" body="Try fewer filters." action={<Button variant="secondary" onClick={() => { setFilters(EMPTY_FILTERS); setQuery(''); setCategory(null); }}>Clear all</Button>} />
         )}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {items.map((i) => (
@@ -163,7 +159,7 @@ export function MenuPage() {
           <Slider label="Max price" min={1000} max={3000} step={100} value={filters.maxPrice}
             onChange={(v) => setFilters((f) => ({ ...f, maxPrice: v }))} format={aed} />
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setFilters(EMPTY)}>Clear all</Button>
+            <Button variant="secondary" className="flex-1" onClick={() => setFilters(EMPTY_FILTERS)}>Clear all</Button>
             <Button className="flex-1" onClick={() => setSheet(false)}>Show {items.length}</Button>
           </div>
         </div>
@@ -211,6 +207,7 @@ function Pairing({ itemId }: { itemId: string }) {
 export function ItemDetailPage() {
   const { itemId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const add = useCart((s) => s.add);
   const menu = useMenu();
@@ -239,11 +236,15 @@ export function ItemDetailPage() {
       return { ...c, [groupId]: cur.includes(optionId) ? cur.filter((x) => x !== optionId) : [...cur, optionId] };
     });
 
+  // A shared link opens with no history, so Back goes to the menu.
+  const back = () => { if (location.key === 'default') navigate('/menu'); else navigate(-1); };
+
   return (
     <Page className="lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
       <div className="space-y-3">
         <div className="glass gloss relative grid place-items-center rounded-3xl py-8">
           <div className="absolute h-40 w-40 rounded-full blur-3xl" style={{ background: item.accent_color, opacity: 0.45 }} />
+          <div className="absolute left-2 top-2 z-10"><Button variant="icon" aria-label="Back" onClick={back}><ArrowLeft size={20} strokeWidth={1.75} /></Button></div>
           <div className="relative"><DrinkArt kind={item.kind} accent={item.accent_color} name={item.name} imageUrl={item.image_url} size={200} /></div>
         </div>
         <h1 className="h1-gradient text-5xl">{item.name}</h1>

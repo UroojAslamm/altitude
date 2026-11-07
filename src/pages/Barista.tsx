@@ -153,7 +153,7 @@ export default function BaristaPage() {
     <div className="min-h-dvh p-4">
       {!online && <div role="status" className="mb-3 rounded-xl border border-mango-400/50 bg-ink-800 p-2 text-center text-sm">Reconnecting. Orders refresh every 15 seconds.</div>}
       <header className="mb-4 flex flex-wrap items-center gap-3">
-        <h1 className="h1-gradient text-4xl">Counter</h1>
+        <h1 className="h1-gradient text-4xl">Barista</h1>
         <ConnectionDot online={online} />
         <div className="px-2"><Stat label="Orders today" value={stats.data?.orders_today ?? 0} /></div>
         <div className="ml-auto flex flex-wrap items-center gap-2">

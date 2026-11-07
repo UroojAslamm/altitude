@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  bestDiscount, commonHourLabel, commonHourLeft, etaLabel, etaSeconds, freeShotFils, lineTotal, metersFor, pinFavorites, squadBonus, tierFor, tierProgress,
+  bestDiscount, commonHourLabel, commonHourLeft, etaLabel, etaSeconds, freeShotFils, lineTotal, metersFor, pinFavorites, prepItem, prepLevel, squadBonus, tierFor, tierProgress,
 } from '@/lib/rules';
 
 describe('pricing', () => {
@@ -81,5 +81,22 @@ describe('owner review helpers', () => {
     const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
     expect(pinFavorites(items, new Set(['c', 'b'])).map((i) => i.id)).toEqual(['b', 'c', 'a', 'd']);
     expect(pinFavorites(items, undefined)).toBe(items);
+  });
+
+  it('fills with time and stays short of full until the order is ready', () => {
+    const start = '2026-11-07T10:00:00Z';
+    const at = (s: number) => new Date(start).getTime() + s * 1000;
+    expect(prepLevel(start, at(0))).toBeCloseTo(0.1);
+    expect(prepLevel(start, at(90))).toBeCloseTo(0.51);
+    expect(prepLevel(start, at(9000))).toBeCloseTo(0.92);
+    expect(prepLevel(start, at(-60))).toBeCloseTo(0.1);
+  });
+
+  it('shows the first drink of a mixed order, or the first item if there is no drink', () => {
+    const items = [{ id: 'c', kind: 'bakery' }, { id: 's', kind: 'shake' }];
+    expect(prepItem([{ menu_item_id: 'c' }, { menu_item_id: 's' }], items)?.item?.kind).toBe('shake');
+    expect(prepItem([{ menu_item_id: 'c' }], items)?.item?.kind).toBe('bakery');
+    expect(prepItem([{ menu_item_id: 'gone' }], items)?.item).toBeUndefined();
+    expect(prepItem([], items)).toBeUndefined();
   });
 });

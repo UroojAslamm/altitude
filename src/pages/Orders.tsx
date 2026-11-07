@@ -1,9 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Check } from 'lucide-react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { Check, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Page, PageHeader } from '@/components/AppShell';
-import { CupFallback } from '@/components/CupFallback';
+import { PrepVisual } from '@/components/PrepVisual';
 import { Logo } from '@/components/brand';
 import {
   Badge, Button, Card, Chip, cx, EmptyState, ErrorState, Modal, Rating, Skeleton, TextArea, TIER_LABEL, TierShield, useToast, type Tier,
@@ -11,13 +11,10 @@ import {
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
 import { useMenu, useMyOrders, useOrder, useQueueInfo, useRealtime } from '@/lib/queries';
-import { aed, dubaiDate, dubaiTime, etaLabel, friendlyError } from '@/lib/rules';
+import { aed, dubaiDate, dubaiTime, etaLabel, friendlyError, prepItem } from '@/lib/rules';
 import { payments } from '@/lib/payment';
 import { supabase } from '@/lib/supabase';
 import type { MeterBreakdown, Order, OrderStatus } from '@/lib/types';
-import { can3d, ThreeBoundary } from '@/three/support';
-
-const CupTracker = lazy(() => import('@/three/CupTracker'));
 
 const STEPS: Array<{ status: OrderStatus; label: string }> = [
   { status: 'placed', label: 'Placed' }, { status: 'preparing', label: 'Preparing' },
@@ -197,8 +194,7 @@ export function TrackerPage() {
   if (order.isLoading) return <Page><Skeleton className="h-72" /></Page>;
   if (order.isError || !order.data) return <Page><ErrorState onRetry={() => void order.refetch()} /></Page>;
   const o = order.data;
-  const firstItem = menu.data?.items.find((i) => i.id === o.order_items?.[0]?.menu_item_id);
-  const accent = firstItem?.accent_color ?? '#C99A5B';
+  const shown = prepItem(o.order_items ?? [], menu.data?.items ?? []);
 
   return (
     <>
@@ -211,17 +207,17 @@ export function TrackerPage() {
             {queue.data ? `${queue.data.ahead_count} ahead of you, ${etaLabel(queue.data.eta_seconds)}` : 'Checking the queue'}
           </p>
         )}
-        {o.status !== 'completed' && o.status !== 'cancelled' && (
-          <div className="grid place-items-center">
-            {can3d() ? (
-              <ThreeBoundary fallback={<CupFallback status={o.status} accent={accent} />}>
-                <Suspense fallback={<CupFallback status={o.status} accent={accent} />}>
-                  <CupTracker status={o.status} accent={accent} ahead={queue.data?.ahead_count ?? 0} preparingAt={o.preparing_at} />
-                </Suspense>
-              </ThreeBoundary>
-            ) : <CupFallback status={o.status} accent={accent} />}
-          </div>
-        )}
+        {active && (menu.isLoading ? <Skeleton className="mx-auto h-60 w-56" /> : (
+          <PrepVisual
+            kind={shown?.item?.kind ?? 'hot'}
+            accent={shown?.item?.accent_color ?? '#C99A5B'}
+            name={shown?.line.name_snapshot ?? 'Your order'}
+            imageUrl={shown?.item?.image_url}
+            status={o.status}
+            preparingAt={o.preparing_at}
+            more={(o.order_items?.length ?? 1) - 1}
+          />
+        ))}
         <BaristaCard order={o} />
         {o.status === 'completed' && o.meter_breakdown && <Earned breakdown={o.meter_breakdown} order={o} />}
         <Card>
@@ -254,7 +250,8 @@ const STATUS_TONE: Record<OrderStatus, 'neutral' | 'success' | 'warning' | 'erro
 export function OrdersPage() {
   const { session } = useAuth();
   const uid = session?.user.id;
-  const orders = useMyOrders(uid);
+  const orders = useMyOrders(uid, 10);
+  const client = useQueryClient();
   const add = useCart((s) => s.add);
   const menu = useMenu();
   const toast = useToast();
@@ -274,23 +271,34 @@ export function OrdersPage() {
     toast(added ? 'Added to cart' : "Those items aren't available now", added ? 'info' : 'error');
   }
 
+  async function hide(o: Order) {
+    const { error } = await supabase.rpc('hide_order', { p_order_id: o.id });
+    if (error) toast(friendlyError(error.message), 'error');
+    void client.invalidateQueries({ queryKey: ['orders'] });
+  }
+
   return (
     <>
-      <PageHeader title="Orders" />
+      <PageHeader title="Orders" subtitle="Your last 10 orders" />
       <Page className="lg:max-w-2xl">
         {orders.isLoading && <Skeleton className="h-40" />}
         {orders.isError && <ErrorState onRetry={() => void orders.refetch()} />}
         {orders.data?.length === 0 && <EmptyState title="No orders yet" body="Your first climb starts with one coffee." action={<Link to="/menu" className="btn btn-primary">Browse menu</Link>} />}
         {orders.data?.map((o) => (
           <Card key={o.id}>
-            <Link to={`/orders/${o.id}`} className="block">
-              <div className="flex items-center justify-between">
-                <span className="tabular font-display text-2xl font-bold">#{o.order_no}</span>
-                <Badge tone={STATUS_TONE[o.status]}>{o.status}</Badge>
-              </div>
-              <p className="truncate text-sm text-cream-300">{o.order_items?.map((l) => l.name_snapshot).join(', ')}</p>
-              <p className="tabular text-sm text-cream-300">{dubaiDate(o.placed_at)}, {dubaiTime(o.placed_at)} · {aed(o.total_fils)}</p>
-            </Link>
+            <div className="flex items-start gap-2">
+              <Link to={`/orders/${o.id}`} className="block min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="tabular font-display text-2xl font-bold">#{o.order_no}</span>
+                  <Badge tone={STATUS_TONE[o.status]}>{o.status}</Badge>
+                </div>
+                <p className="truncate text-sm text-cream-300">{o.order_items?.map((l) => l.name_snapshot).join(', ')}</p>
+                <p className="tabular text-sm text-cream-300">{dubaiDate(o.placed_at)}, {dubaiTime(o.placed_at)} · {aed(o.total_fils)}</p>
+              </Link>
+              {(o.status === 'completed' || o.status === 'cancelled') && (
+                <Button variant="icon" aria-label={`Remove order ${o.order_no} from history`} onClick={() => void hide(o)}><X size={20} strokeWidth={1.75} /></Button>
+              )}
+            </div>
             {o.status === 'completed' && <Button variant="secondary" className="mt-2 w-full" onClick={() => reorder(o)}>Order again</Button>}
           </Card>
         ))}

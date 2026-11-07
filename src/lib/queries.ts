@@ -74,7 +74,7 @@ export function useMyOrders(uid: string | undefined, limit = 30) {
     enabled: Boolean(uid),
     refetchInterval: 15_000,
     queryFn: async () =>
-      unwrap(await supabase.from('orders').select(ORDER_SELECT).eq('user_id', uid!).order('placed_at', { ascending: false }).limit(limit)) as Order[],
+      unwrap(await supabase.from('orders').select(ORDER_SELECT).eq('user_id', uid!).is('hidden_at', null).order('placed_at', { ascending: false }).limit(limit)) as Order[],
   });
 }
 

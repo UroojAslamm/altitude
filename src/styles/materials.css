@@ -212,6 +212,40 @@
   }
 }
 
+/* Order progress, shown only while a barista is making the order. */
+.prep-flow {
+  animation: prep-flow 700ms linear infinite;
+}
+.prep-wave {
+  animation: prep-wave 2.4s linear infinite;
+}
+.prep-steam {
+  animation: prep-steam 3s ease-in-out infinite;
+}
+.prep-steam-late {
+  animation-delay: 1.2s;
+}
+@keyframes prep-flow {
+  to {
+    stroke-dashoffset: -29;
+  }
+}
+@keyframes prep-wave {
+  to {
+    transform: translateX(-40px);
+  }
+}
+@keyframes prep-steam {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

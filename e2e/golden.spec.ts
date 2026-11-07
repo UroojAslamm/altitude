@@ -71,12 +71,28 @@ test('double click on Place order makes one order', async ({ page }) => {
   await login(page, 'student2@altitude.demo');
   await page.goto('/orders');
   await page.waitForLoadState('networkidle');
-  const before = await page.getByRole('link', { name: /#\d+/ }).count();
+  const hrefs = () => page.getByRole('link', { name: /#\d+/ }).evaluateAll((links) => links.map((l) => l.getAttribute('href')));
+  const before = await hrefs();
   await order(page);
   await page.getByRole('button', { name: 'Place order' }).dblclick();
   await page.waitForURL(/\/orders\/[0-9a-f-]{36}/);
   await page.goto('/orders');
-  await expect(page.getByRole('link', { name: /#\d+/ })).toHaveCount(before + 1);
+  await expect(page.getByRole('link', { name: /#\d+/ }).first()).toBeVisible();
+  // The list stops at 10, so check that exactly one new order went on top.
+  expect((await hrefs()).slice(1)).toEqual(before.slice(0, 9));
+});
+
+test('menu filters survive opening an item, and Back returns to the menu', async ({ page }) => {
+  await login(page, 'student2@altitude.demo');
+  await page.goto('/menu');
+  await page.getByPlaceholder('Search').fill('Iced Americano');
+  await page.locator('[data-testid="menu-item"]', { hasText: 'Iced Americano' }).first().click();
+  await page.getByRole('button', { name: 'Back' }).click();
+  await page.waitForURL('**/menu');
+  await expect(page.getByPlaceholder('Search')).toHaveValue('Iced Americano');
+  await page.locator('[data-testid="menu-item"]', { hasText: 'Iced Americano' }).first().click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Menu' }).click();
+  await expect(page.getByPlaceholder('Search')).toHaveValue('Iced Americano');
 });
 
 test('sold-out toggle blocks adding in real time', async ({ page, browser }) => {
@@ -166,9 +182,11 @@ test('review dialog, barista name, tip, and ready pop-up off the order page', as
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, 'student2@altitude.demo');
   await order(page);
+  await expect(page.getByRole('list', { name: 'Your items' })).toContainText('1 x Iced Americano');
   await page.getByRole('button', { name: 'Place order' }).click();
   await page.waitForURL(/\/orders\/[0-9a-f-]{36}/);
   const tracker = page.url();
+  await expect(page.getByTestId('prep-visual')).toHaveAttribute('data-kind', 'iced');
   const no = (await page.getByRole('heading', { name: /Order #\d+/ }).innerText()).replace(/\D/g, '');
 
   const barista = await baristaPage(browser);
@@ -192,6 +210,10 @@ test('review dialog, barista name, tip, and ready pop-up off the order page', as
   const box = await dialog.getByRole('heading').boundingBox();
   expect(box!.y).toBeGreaterThan(0);
   await barista.context().close();
+
+  await page.goto('/orders');
+  await page.getByRole('button', { name: `Remove order ${no} from history` }).click();
+  await expect(page.getByRole('button', { name: `Remove order ${no} from history` })).toHaveCount(0);
 });
 
 test('favorites are pinned to the top of the menu', async ({ page }) => {

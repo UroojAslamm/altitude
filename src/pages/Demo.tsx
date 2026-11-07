@@ -48,7 +48,7 @@ export default function DemoPage() {
         </Card>
         <div className="flex gap-2">
           <Link to="/admin" className="btn btn-secondary glass">Admin</Link>
-          <Link to="/barista" className="btn btn-secondary glass">Counter</Link>
+          <Link to="/barista" className="btn btn-secondary glass">Barista</Link>
         </div>
       </Page>
     </>

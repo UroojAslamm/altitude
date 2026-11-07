@@ -16,6 +16,7 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 | M9 | Final deploy and SUBMISSION.md | SUBMISSION.md done. Deployed to https://altitude-liart.vercel.app |
 | Extra | Pitch deck .pptx (Team Pythons) | Done: docs/ASCEND-pitch.pptx, rendered in PowerPoint |
 | Extra | Owner review pass: removals, barista name and tips, sounds, coffee machine landing | Done. Migration 0008 applied. See DECISIONS.md |
+| Extra | Second owner review: checkout items, order history X and last 10, item Back arrow, kept filters, admin header, item-based prep animation | Done. Migration 0009 applied. See DECISIONS.md |
 
 ## Waiting on owner
 - Photo B (wall)

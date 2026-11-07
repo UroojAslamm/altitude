@@ -111,6 +111,18 @@ export function commonHourLabel(start: string, end: string) {
 }
 
 /** Favorites first. Otherwise the menu keeps its order. */
+/** How full the drink looks while it is made. It stops short of full until the barista marks it ready. */
+export function prepLevel(preparingAt: string | null, now = Date.now(), seconds = 180) {
+  const elapsed = preparingAt ? (now - new Date(preparingAt).getTime()) / 1000 : 0;
+  return 0.1 + 0.82 * Math.min(1, Math.max(0, elapsed / seconds));
+}
+
+/** The one item shown being made. Drinks come before food, because they have something to fill. */
+export function prepItem<L extends { menu_item_id: string }, M extends { id: string; kind: string }>(lines: L[], items: M[]) {
+  const matched = lines.map((line) => ({ line, item: items.find((i) => i.id === line.menu_item_id) }));
+  return matched.find((m) => m.item && m.item.kind !== 'bakery') ?? matched[0];
+}
+
 export function pinFavorites<T extends { id: string }>(items: T[], favorites: ReadonlySet<string> | undefined) {
   if (!favorites?.size) return items;
   return [...items.filter((i) => favorites.has(i.id)), ...items.filter((i) => !favorites.has(i.id))];

@@ -139,6 +139,17 @@ export function CheckoutPage() {
         {open.data === false && <div role="alert" className="rounded-xl border border-mango-400/50 bg-ink-800 p-3">Altitude is closed right now.</div>}
         {preview.isError && <div role="alert" className="rounded-xl border border-berry-500/60 bg-[#3A1418] p-3">{friendlyError(preview.error.message)}</div>}
         <Card>
+          <ul className="space-y-1" aria-label="Your items">
+            {lines.map((l) => (
+              <li key={l.key} className="flex justify-between gap-3">
+                <span className="min-w-0">{l.qty} x {l.name}
+                  {l.optionNames.length > 0 && <span className="block truncate text-sm text-cream-300">{l.optionNames.join(', ')}</span>}
+                </span>
+                <span className="tabular">{aed(l.unitFils * l.qty)}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="brass-rule my-2" />
           {preview.isLoading ? <Skeleton className="h-24" /> : p && (
             <dl className="tabular space-y-1">
               <div className="flex justify-between"><dt>Subtotal</dt><dd>{aed(p.subtotal_fils)}</dd></div>

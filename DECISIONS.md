@@ -33,10 +33,15 @@ These override the PRD.
 - The Home "Best time to come" card stays. The owner's note was about the analytics tab.
 - Common Hour is 12:00 to 13:00. Labels read it from settings.
 - `orders.prepared_by_name` is a first-name snapshot of whoever pressed Start, because students cannot read staff profiles. `tip_order` adds one tip per order after that. The checkout tip stays. Meters still exclude tips.
-- Sound is on by default and kept per device. It can be changed in Me, on the Counter, and in admin settings.
+- Sound is on by default and kept per device. It can be changed in Me, on the Barista screen, and in admin settings.
 - The ready pop-up is global in `AppShell`, so it shows on any screen. The tracker keeps its full-screen panel.
 - `public_social_links()` gives the signed-out landing page Facebook, Instagram, and Google review links without opening `settings` to anon.
 - "Staff button": the owner's wording. The demo login now has Try as Student and Try as Staff, and Staff opens Barista and Admin. Admins also get an Admin button on the Counter.
 - The landing opens on a procedural espresso machine in `src/three/Machine.tsx`. Beans are a function of scroll, so nothing loops. The cup turns once during the pour.
 - Clubs are removed from the app at the owner's request: the page, the Home link, and the landing line. The tables and the `clublead` demo account stay, unused.
 - `watchForAppUpdates` reloads the page when a new service worker takes over. Without it, `registerSW.js` only registers the worker, so returning browsers kept showing the old build.
+- The order tracker no longer uses the 3D cup (F17). The owner asked for the visual to match the item, so `PrepVisual` draws it in 2D: the drink fills over 180 seconds from the barista's start, stops at 92 percent until Ready, and food appears from the bottom up. On a mixed order it shows the first drink. The queue of small cups went with the 3D cup; the queue line above still gives the count.
+- The pour, surface, and steam loop only while an order is being prepared. They show progress, so the rule against looping decorative animation does not apply. Reduced motion stops them.
+- The X on order history sets `orders.hidden_at` through `hide_order`. Nothing is deleted, so analytics, meters, and barista records are unchanged. Only completed and cancelled orders can be hidden. The list shows the last 10 visible orders.
+- Menu search, category, and filters are kept in memory until the page reloads, so they survive opening an item and returning.
+- "Counter" is now "Barista" on the staff screens. "Student view" is gone from the admin header. Students still pick up "at the counter", which is the physical place.
