@@ -306,6 +306,7 @@ function SettingsTab() {
           <Field label="Open" type="time" value={f.open_time.slice(0, 5)} onChange={(e) => setF({ ...f, open_time: e.target.value })} />
           <Field label="Close" type="time" value={f.close_time.slice(0, 5)} onChange={(e) => setF({ ...f, close_time: e.target.value })} />
           <Field label="Open days (1 Mon to 7 Sun)" value={f.days_open.join(',')} onChange={(e) => setF({ ...f, days_open: e.target.value.split(',').map(num).filter(Boolean) })} />
+          <Field label="Seconds until an order is ready by itself (0 = barista only)" inputMode="numeric" value={f.auto_ready_seconds} onChange={(e) => setF({ ...f, auto_ready_seconds: Math.min(600, num(e.target.value)) })} />
           <Field label="Baristas on shift" inputMode="numeric" value={f.barista_count} onChange={(e) => setF({ ...f, barista_count: Math.max(1, num(e.target.value)) })} />
           <Field label="Allowed email domains" value={f.allowed_domains.join(', ')} onChange={(e) => setF({ ...f, allowed_domains: e.target.value.split(',').map((d) => d.trim()).filter(Boolean) })} />
         </div>

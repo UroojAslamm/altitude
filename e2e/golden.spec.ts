@@ -4,7 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 const PASSWORD = process.env.DEMO_PASSWORD!;
 
+const AUTO_ADVANCE = '**/rpc/auto_advance_orders';
+
 async function login(page: Page, email: string, password = PASSWORD) {
+  // Most tests drive the barista by hand, so the pitch timer stays out of their way.
+  await page.route(AUTO_ADVANCE, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '0' }));
   await page.goto('/login');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
@@ -80,6 +84,20 @@ test('double click on Place order makes one order', async ({ page }) => {
   await expect(page.getByRole('link', { name: /#\d+/ }).first()).toBeVisible();
   // The list stops at 10, so check that exactly one new order went on top.
   expect((await hrefs()).slice(1)).toEqual(before.slice(0, 9));
+});
+
+test('an order reaches Ready by itself in about 15 seconds', async ({ page }) => {
+  await login(page, 'student3@altitude.demo');
+  await page.unroute(AUTO_ADVANCE);
+  await order(page);
+  await page.getByRole('button', { name: 'Place order' }).click();
+  await page.waitForURL(/\/orders\/[0-9a-f-]{36}/);
+  const start = Date.now();
+  await expect(page.getByTestId('queue')).toContainText('sec');
+  await expect(page.getByTestId('prepared-by')).toContainText('is preparing your order', { timeout: 10_000 });
+  await expect(page.getByRole('alertdialog')).toBeVisible({ timeout: 20_000 });
+  expect(Date.now() - start).toBeLessThan(20_000);
+  await page.getByRole('button', { name: 'I got it' }).click();
 });
 
 test('menu filters survive opening an item, and Back returns to the menu', async ({ page }) => {

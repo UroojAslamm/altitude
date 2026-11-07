@@ -56,6 +56,7 @@ export interface Settings {
   seat_status: 'plenty' | 'few' | 'full';
   social_links: Record<string, string>;
   barista_count: number;
+  auto_ready_seconds: number;
 }
 
 export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'completed' | 'cancelled';

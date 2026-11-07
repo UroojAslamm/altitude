@@ -1,8 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { playAlert } from '@/lib/chime';
 import { useMyOrders, useRealtime } from '@/lib/queries';
+import { supabase } from '@/lib/supabase';
 import type { Order, OrderStatus } from '@/lib/types';
 import { Button, Modal } from './ui';
 
@@ -16,6 +18,22 @@ export function ReadyWatcher() {
   const navigate = useNavigate();
   const seen = useRef<Map<string, OrderStatus> | null>(null);
   const [ready, setReady] = useState<Order | null>(null);
+  const client = useQueryClient();
+  const waiting = orders.data?.some((o) => o.status === 'placed' || o.status === 'preparing') ?? false;
+
+  // The database decides when an order moves on. This only asks it to check.
+  useEffect(() => {
+    if (!waiting) return undefined;
+    const timer = window.setInterval(() => {
+      void supabase.rpc('auto_advance_orders').then(({ data }) => {
+        if (!data) return;
+        void client.invalidateQueries({ queryKey: ['orders'] });
+        void client.invalidateQueries({ queryKey: ['order'] });
+        void client.invalidateQueries({ queryKey: ['queue'] });
+      });
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [waiting, client]);
 
   useEffect(() => {
     if (!orders.data) return;

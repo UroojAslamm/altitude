@@ -68,6 +68,8 @@ export function etaSeconds(aheadSeconds: number, ownSeconds: number, baristas: n
 }
 
 export function etaLabel(seconds: number) {
+  if (seconds <= 0) return 'almost ready';
+  if (seconds < 60) return `about ${seconds} sec`;
   return `about ${Math.max(1, Math.round(seconds / 60))} min`;
 }
 
