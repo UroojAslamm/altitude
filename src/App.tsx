@@ -18,7 +18,6 @@ const LandingPage = lazy(() => import('@/pages/Landing'));
 const AdminPage = lazy(() => import('@/pages/Admin'));
 const DemoPage = lazy(() => import('@/pages/Demo'));
 const SquadPage = lazy(() => import('@/pages/Squad'));
-const ClubsPage = lazy(() => import('@/pages/Clubs').then((m) => ({ default: m.ClubsPage })));
 const OffersPage = lazy(() => import('@/pages/Offers'));
 
 function Loading() {
@@ -93,7 +92,6 @@ export default function App() {
             <Route path="/orders" element={<RequireRole><OrdersPage /></RequireRole>} />
             <Route path="/orders/:orderId" element={<RequireRole><TrackerPage /></RequireRole>} />
             <Route path="/squad" element={<RequireRole><SquadPage /></RequireRole>} />
-            <Route path="/clubs" element={<RequireRole><ClubsPage /></RequireRole>} />
             <Route path="/offers" element={<RequireRole><OffersPage /></RequireRole>} />
             <Route path="/me" element={<RequireRole><MePage /></RequireRole>} />
           </Route>

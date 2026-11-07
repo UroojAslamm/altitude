@@ -191,7 +191,6 @@ export function HomePage() {
         )}
         <nav aria-label="More" className="flex flex-wrap gap-2">
           <Link to="/offers" className="btn btn-secondary glass">Offers</Link>
-          <Link to="/clubs" className="btn btn-secondary glass">Clubs</Link>
         </nav>
         <SocialButtons links={s?.social_links} />
       </Page>

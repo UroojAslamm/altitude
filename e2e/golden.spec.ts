@@ -152,7 +152,7 @@ for (const [name, viewport] of [['phone', { width: 390, height: 844 }], ['laptop
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     page.on('pageerror', (e) => errors.push(e.message));
     await login(page, 'student4@altitude.demo');
-    for (const path of ['/', '/menu', '/cart', '/orders', '/squad', '/me', '/offers', '/clubs']) {
+    for (const path of ['/', '/menu', '/cart', '/orders', '/squad', '/me', '/offers']) {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
       await page.screenshot({ path: `test-results/shots/${name}${path.replace(/\//g, '-')}.png`, fullPage: true });

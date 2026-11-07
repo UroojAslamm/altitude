@@ -283,17 +283,6 @@ async function seedCommunity(items, ids) {
   must(await db.from('squad_members').insert([{ squad_id: squad.id, user_id: s(2) }, { squad_id: squad.id, user_id: s(3) }]), 'squad members');
   must(await db.from('profiles').update({ squad_id: squad.id }).in('id', [s(2), s(3)]), 'squad profiles');
 
-  // Clubs.
-  must(await db.from('club_members').delete().gte('created_at', '2000-01-01'), 'club clear');
-  const clubRows = [['AIRC', 'AI and robotics club at RIT Dubai.'], ['ASHRAE RIT Dubai', 'Building systems and sustainability.'], ['IEEE', 'Engineering talks and projects.'], ['Robotics', 'Build it, code it, race it.'], ['Debate', 'Argue well, think better.']];
-  must(await db.from('clubs').upsert(clubRows.map(([name, description]) => ({ name, description, member_count: 0 })), { onConflict: 'name' }), 'clubs');
-  const clubs = Object.fromEntries(must(await db.from('clubs').select('id,name'), 'clubs read').map((c) => [c.name, c.id]));
-  const memberships = [[s(1), 'AIRC'], [s(2), 'AIRC'], [s(3), 'IEEE'], [s(4), 'Robotics'], [ids['clublead@altitude.demo'], 'AIRC'], [s(3), 'Debate']];
-  must(await db.from('club_members').insert(memberships.map(([user_id, c]) => ({ user_id, club_id: clubs[c] }))), 'club members');
-  for (const [name, id] of Object.entries(clubs)) {
-    must(await db.from('clubs').update({ member_count: memberships.filter(([, c]) => c === name).length }).eq('id', id), 'club count');
-  }
-  must(await db.from('profiles').update({ club_lead_of: clubs.AIRC }).eq('id', ids['clublead@altitude.demo']), 'lead');
   const ledger = ACCOUNTS.filter((a) => a.meters > 0).map((a) => ({ user_id: ids[a.email], delta: a.meters, reason: 'adjustment' }));
   must(await db.from('meter_ledger').insert(ledger), 'ledger');
 

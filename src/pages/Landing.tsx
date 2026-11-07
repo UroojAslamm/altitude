@@ -11,7 +11,7 @@ const Ascent = lazy(() => import('@/three/Ascent'));
 const FEATURES = [
   { icon: Coffee, title: 'Order ahead', body: 'Skip the line. Watch the queue live and get alerted when it is ready.' },
   { icon: Mountain, title: 'Climb tiers', body: 'Every dirham earns meters. Base Camp to Peak, with perks at each step.' },
-  { icon: Users, title: 'Squad up', body: 'When a friend orders, you climb too. Clubs race for the Summit.' },
+  { icon: Users, title: 'Squad up', body: 'When a friend orders, you climb too. Squads earn together.' },
 ];
 
 function Cta() {

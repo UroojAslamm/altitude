@@ -126,7 +126,6 @@ const ERRORS: Array<[RegExp, string]> = [
   [/ALREADY_IN_SQUAD/, "You're already in a squad."],
   [/SQUAD_NOT_FOUND/, "That code didn't match a squad."],
   [/SQUAD_FULL/, 'That squad is full.'],
-  [/CLUB_LIMIT/, 'You can join up to 3 clubs.'],
   [/REVIEW_NEEDS_ORDER/, 'Order this item first, then review it.'],
   [/ALREADY_TIPPED/, 'This order already has a tip. Thank you.'],
   [/NO_TICKETS/, 'No spin tickets yet. Every 5 orders earns one.'],

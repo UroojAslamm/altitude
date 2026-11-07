@@ -38,3 +38,4 @@ These override the PRD.
 - `public_social_links()` gives the signed-out landing page Facebook, Instagram, and Google review links without opening `settings` to anon.
 - "Staff button": the owner's wording. The demo login now has Try as Student and Try as Staff, and Staff opens Barista and Admin. Admins also get an Admin button on the Counter.
 - The landing opens on a procedural espresso machine in `src/three/Machine.tsx`. Beans are a function of scroll, so nothing loops. The cup turns once during the pour.
+- Clubs are removed from the app at the owner's request: the page, the Home link, and the landing line. The tables and the `clublead` demo account stay, unused.
