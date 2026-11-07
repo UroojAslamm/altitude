@@ -2,6 +2,8 @@ import { Coffee, Mountain, Users } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo, PhotoBackdrop } from '@/components/brand';
+import { PublicSocialButtons } from '@/components/SocialButtons';
+import { cx } from '@/components/ui';
 import { can3d, ThreeBoundary } from '@/three/support';
 
 const Ascent = lazy(() => import('@/three/Ascent'));
@@ -21,15 +23,15 @@ function Cta() {
   );
 }
 
-function Features() {
+function Features({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className={cx('grid md:grid-cols-3', compact ? 'gap-2' : 'gap-4')}>
       {FEATURES.map(({ icon: Icon, title, body }) => (
-        <div key={title} className="glass gloss hairline rounded-2xl p-5">
+        <div key={title} className={cx('glass gloss hairline rounded-2xl', compact ? 'p-3 text-center' : 'p-5')}>
           <div className="relative">
-            <Icon size={24} strokeWidth={1.75} className="text-glow-300" />
-            <h2 className="mt-2 text-3xl">{title}</h2>
-            <p className="text-cream-100">{body}</p>
+            <Icon size={compact ? 20 : 24} strokeWidth={1.75} className={cx('text-glow-300', compact && 'mx-auto')} />
+            <h2 className={compact ? 'mt-1 text-xl' : 'mt-2 text-3xl'}>{title}</h2>
+            <p className={cx('text-cream-100', compact && 'text-sm')}>{body}</p>
           </div>
         </div>
       ))}
@@ -59,6 +61,7 @@ function FlatLanding() {
           <div className="flex h-full items-end p-6"><h2 className="text-4xl">Earn meters. Climb tiers.</h2></div>
         </PhotoBackdrop>
         <Cta />
+        <PublicSocialButtons />
       </section>
     </div>
   );
@@ -70,7 +73,7 @@ export default function LandingPage() {
   return (
     <ThreeBoundary fallback={<FlatLanding />}>
       <Suspense fallback={<FlatLanding />}>
-        <Ascent features={<Features />} cta={<Cta />} />
+        <Ascent features={<Features compact />} cta={<Cta />} socials={<PublicSocialButtons />} />
       </Suspense>
     </ThreeBoundary>
   );

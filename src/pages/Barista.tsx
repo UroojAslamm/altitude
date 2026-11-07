@@ -1,12 +1,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Volume2 } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { SoundSettings } from '@/components/SoundSettings';
 import {
-  Badge, Button, ConnectionDot, cx, Field, Modal, Segmented, Sheet, Skeleton, Stat, useToast,
+  Badge, Button, ConnectionDot, cx, Field, Modal, Sheet, Skeleton, Stat, useToast,
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
-import { playChime, unlockAudio } from '@/lib/chime';
-import { useMenu, useRealtime, useSettings } from '@/lib/queries';
+import { playAlert } from '@/lib/chime';
+import { useMenu, useRealtime } from '@/lib/queries';
 import { friendlyError } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { Order, OrderStatus } from '@/lib/types';
@@ -92,11 +94,10 @@ function Switchboard({ open, onClose }: { open: boolean; onClose: () => void }) 
 }
 
 export default function BaristaPage() {
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const client = useQueryClient();
   const toast = useToast();
   const now = useNow();
-  const settings = useSettings();
   const [sound, setSound] = useState(false);
   const [board, setBoard] = useState(false);
   const [cancelling, setCancelling] = useState<Order | null>(null);
@@ -115,12 +116,11 @@ export default function BaristaPage() {
   const stats = useQuery({
     queryKey: ['barista-stats'],
     refetchInterval: 30_000,
-    queryFn: async () => (await supabase.rpc('barista_stats')).data as { orders_today: number; avg_prep_seconds: number },
+    queryFn: async () => (await supabase.rpc('barista_stats')).data as { orders_today: number },
   });
   const online = useRealtime(
     [
       { table: 'orders', keys: [['barista-orders'], ['barista-stats']] },
-      { table: 'settings', keys: [['settings']] },
       { table: 'menu_items', keys: [['menu']] },
     ],
     'barista-live',
@@ -130,9 +130,9 @@ export default function BaristaPage() {
   useEffect(() => {
     if (!orders.data) return;
     const ids = new Set(orders.data.map((o) => o.id));
-    if (seen.current && sound && orders.data.some((o) => !seen.current!.has(o.id) && o.status === 'placed')) playChime();
+    if (seen.current && orders.data.some((o) => !seen.current!.has(o.id) && o.status === 'placed')) playAlert('new_order');
     seen.current = ids;
-  }, [orders.data, sound]);
+  }, [orders.data]);
 
   const columns = useMemo(() => {
     const by = (s: OrderStatus) => (orders.data ?? []).filter((o) => o.status === s);
@@ -148,8 +148,6 @@ export default function BaristaPage() {
   });
   const act = (fn: string, args: object) => void actRef.current(fn, args);
 
-  const seat = settings.data?.seat_status ?? 'plenty';
-  const accepting = settings.data?.accepting_orders ?? true;
 
   return (
     <div className="min-h-dvh p-4">
@@ -157,22 +155,11 @@ export default function BaristaPage() {
       <header className="mb-4 flex flex-wrap items-center gap-3">
         <h1 className="h1-gradient text-4xl">Counter</h1>
         <ConnectionDot online={online} />
-        <div className="flex gap-6 px-2">
-          <Stat label="Orders today" value={stats.data?.orders_today ?? 0} />
-          <Stat label="Avg prep" value={`${Math.round((stats.data?.avg_prep_seconds ?? 0) / 60 * 10) / 10} min`} />
-        </div>
+        <div className="px-2"><Stat label="Orders today" value={stats.data?.orders_today ?? 0} /></div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <div className="w-56">
-            <Segmented label="Seat availability" value={seat}
-              onChange={async (v) => { await supabase.rpc('set_seat_status', { p_status: v }); void client.invalidateQueries({ queryKey: ['settings'] }); }}
-              options={[{ value: 'plenty', label: 'Plenty' }, { value: 'few', label: 'Few' }, { value: 'full', label: 'Full' }]} />
-          </div>
           <Button variant="secondary" onClick={() => setBoard(true)}>Sold out</Button>
-          <Button variant={accepting ? 'secondary' : 'primary'}
-            onClick={async () => { await supabase.rpc('set_accepting_orders', { p_accepting: !accepting }); void client.invalidateQueries({ queryKey: ['settings'] }); }}>
-            {accepting ? 'Pause orders' : 'Resume orders'}
-          </Button>
-          {!sound && <Button variant="secondary" onClick={() => { unlockAudio(); playChime(); setSound(true); }}><Volume2 size={20} strokeWidth={1.75} />Enable sound</Button>}
+          <Button variant="secondary" onClick={() => setSound(true)}><Volume2 size={20} strokeWidth={1.75} />Sound</Button>
+          {profile?.role === 'admin' && <Link to="/admin" className="btn btn-secondary glass">Admin</Link>}
           <Button variant="ghost" onClick={() => void signOut()}>Log out</Button>
         </div>
       </header>
@@ -187,6 +174,7 @@ export default function BaristaPage() {
         ))}
       </div>
       <Switchboard open={board} onClose={() => setBoard(false)} />
+      <Sheet open={sound} onClose={() => setSound(false)} title="Sound"><SoundSettings /></Sheet>
       <Modal open={cancelling !== null} onClose={() => setCancelling(null)} title={`Cancel #${cancelling?.order_no ?? ''}`}>
         <Field label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
         <Button className="mt-3 w-full" disabled={!reason.trim()}

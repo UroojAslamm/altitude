@@ -104,6 +104,7 @@ export interface Order {
   completed_at: string | null;
   meters_awarded: number | null;
   meter_breakdown: MeterBreakdown | null;
+  prepared_by_name: string | null;
   order_items?: OrderItem[];
 }
 

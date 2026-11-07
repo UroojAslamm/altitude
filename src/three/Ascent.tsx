@@ -3,6 +3,8 @@ import Lenis from 'lenis';
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import * as THREE from 'three';
 import { Logo } from '@/components/brand';
+import { cx } from '@/components/ui';
+import { CoffeeMachine, CUP_SCALE, cupAngle, MachineLights, TRAY_Y } from './Machine';
 import { PaperCup, Shield, Studio } from './parts';
 import { disable3d, isMobile } from './support';
 
@@ -12,15 +14,16 @@ const span = (p: number, a: number, b: number) => ease(clamp((p - a) / (b - a)))
 
 interface Stop { p: number; pos: [number, number, number]; look: [number, number, number] }
 const PATH: Stop[] = [
-  { p: 0, pos: [0, 2.4, 6.2], look: [0, 1.15, 0] },
-  { p: 0.22, pos: [0, 3.1, 5.2], look: [0, 1.4, 0] },
+  { p: 0, pos: [0, 4.2, 14.6], look: [0, 4.15, 0] },
+  { p: 0.14, pos: [0, 3.2, 7.6], look: [0, 2.55, 0] },
+  { p: 0.22, pos: [0, 5.1, 6.2], look: [0, 2.2, 0] },
   { p: 0.48, pos: [0, 13, 11], look: [0, 14.3, 0] },
   { p: 0.72, pos: [0, 14, 9.5], look: [0, 14.5, 0] },
   { p: 0.92, pos: [0, 25, 44], look: [0, 23, -6] },
   { p: 1, pos: [0, 33, 40], look: [0, 30, -6] },
 ];
 
-function sample(p: number, pos: THREE.Vector3, look: THREE.Vector3) {
+function sample(p: number, pos: THREE.Vector3, look: THREE.Vector3, aspect: number) {
   let i = 0;
   while (i < PATH.length - 2 && p > PATH[i + 1]!.p) i++;
   const a = PATH[i]!;
@@ -28,12 +31,14 @@ function sample(p: number, pos: THREE.Vector3, look: THREE.Vector3) {
   const t = ease(clamp((p - a.p) / (b.p - a.p)));
   pos.set(...a.pos).lerp(new THREE.Vector3(...b.pos), t);
   look.set(...a.look).lerp(new THREE.Vector3(...b.look), t);
+  // Narrow screens step back from the machine so it still fits across the width.
+  pos.z *= 1 + (Math.max(1, 0.58 / aspect) - 1) * (1 - span(p, 0.22, 0.48));
 }
 
 const SKY = [new THREE.Color('#0B0908'), new THREE.Color('#14110F'), new THREE.Color('#5A3212'), new THREE.Color('#E9B878')];
 
 function CameraRig({ progress }: { progress: RefObject<number> }) {
-  const { camera, scene } = useThree();
+  const { camera, scene, size } = useThree();
   const pos = useMemo(() => new THREE.Vector3(), []);
   const look = useMemo(() => new THREE.Vector3(), []);
   const bg = useMemo(() => new THREE.Color(), []);
@@ -41,7 +46,7 @@ function CameraRig({ progress }: { progress: RefObject<number> }) {
 
   useFrame((_, delta) => {
     const p = progress.current ?? 0;
-    sample(p, pos, look);
+    sample(p, pos, look, size.width / size.height);
     camera.position.copy(pos);
     camera.lookAt(look);
     const s = p < 0.72 ? 0 : (p - 0.72) / 0.28;
@@ -69,37 +74,37 @@ function CameraRig({ progress }: { progress: RefObject<number> }) {
 
 function OakSlab() {
   return (
-    <mesh position={[0, -0.14, 0]} receiveShadow>
-      <boxGeometry args={[7, 0.28, 4.4]} />
+    <mesh position={[0, -0.14, -0.4]} receiveShadow>
+      <boxGeometry args={[11, 0.28, 7.4]} />
       <meshPhysicalMaterial color="#3B2717" roughness={0.5} clearcoat={0.35} clearcoatRoughness={0.4} envMapIntensity={0.5} />
     </mesh>
-  );
-}
-
-function RingLight() {
-  return (
-    <group position={[0, 4.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
-      <mesh><torusGeometry args={[1.9, 0.09, 16, 96]} /><meshPhysicalMaterial color="#14110F" metalness={0.9} roughness={0.3} /></mesh>
-      <mesh position={[0, 0, 0.06]}><torusGeometry args={[1.88, 0.045, 12, 96]} /><meshBasicMaterial color="#FFEFD0" toneMapped={false} /></mesh>
-    </group>
   );
 }
 
 function Shafts() {
   const texture = useMemo(() => {
     const c = document.createElement('canvas');
-    c.width = 4;
+    c.width = 64;
     c.height = 256;
     const g = c.getContext('2d')!;
     const grad = g.createLinearGradient(0, 0, 0, 256);
-    grad.addColorStop(0, 'rgba(255,225,170,.34)');
+    grad.addColorStop(0, 'rgba(255,225,170,0)');
+    grad.addColorStop(0.3, 'rgba(255,225,170,.2)');
     grad.addColorStop(1, 'rgba(255,225,170,0)');
     g.fillStyle = grad;
-    g.fillRect(0, 0, 4, 256);
+    g.fillRect(0, 0, 64, 256);
+    // Soft sides, so the light has no hard edge.
+    const sides = g.createLinearGradient(0, 0, 64, 0);
+    sides.addColorStop(0, 'rgba(0,0,0,0)');
+    sides.addColorStop(0.5, 'rgba(0,0,0,1)');
+    sides.addColorStop(1, 'rgba(0,0,0,0)');
+    g.globalCompositeOperation = 'destination-in';
+    g.fillStyle = sides;
+    g.fillRect(0, 0, 64, 256);
     return new THREE.CanvasTexture(c);
   }, []);
   return (
-    <group position={[0, 2.2, -0.8]}>
+    <group position={[0, 4, -4]} scale={2.4}>
       {[-1.4, 0, 1.4].map((x) => (
         <mesh key={x} position={[x, 0, 0]} rotation={[0, 0, x * -0.07]}>
           <planeGeometry args={[1, 4]} />
@@ -183,20 +188,20 @@ function Range() {
 function ScrollCup({ progress }: { progress: RefObject<number> }) {
   const ref = useRef<THREE.Group>(null);
   useFrame(() => {
-    if (ref.current) ref.current.rotation.y = ((progress.current ?? 0) / 0.3) * Math.PI * 2;
+    if (ref.current) ref.current.rotation.y = cupAngle(progress.current ?? 0);
   });
-  return <PaperCup ref={ref} />;
+  return <PaperCup ref={ref} empty position={[0, TRAY_Y, 0]} scale={CUP_SCALE} />;
 }
 
 function Scene({ progress }: { progress: RefObject<number> }) {
   return (
     <>
       <CameraRig progress={progress} />
-      <Studio />
+      <Studio rim="#C9D2E6"><MachineLights /></Studio>
       <OakSlab />
       <directionalLight position={[1.5, 3, 7]} intensity={1.15} color="#FFFFFF" />
+      <CoffeeMachine progress={progress} />
       <ScrollCup progress={progress} />
-      <RingLight />
       <Shafts />
       <Mist />
       <Shield metal="peak" rim="#E9C46A" position={[0, 14, 0]} scale={1.5} />
@@ -207,37 +212,38 @@ function Scene({ progress }: { progress: RefObject<number> }) {
 }
 
 const SECTIONS: Array<{ from: number; to: number; title: string; sub?: string }> = [
-  { from: -0.1, to: 0.2, title: 'Elevate your experiences' },
+  { from: -0.1, to: 0.075, title: 'Elevate your experiences' },
   { from: 0.26, to: 0.46, title: 'Every order is a step up.' },
   { from: 0.5, to: 0.7, title: 'Earn meters. Climb tiers.' },
   { from: 0.74, to: 0.9, title: 'Base Camp. Ridge. Summit. Peak.' },
 ];
 
-function Overlay({ p, features, cta }: { p: number; features: ReactNode; cta: ReactNode }) {
+function Overlay({ p, features, cta, socials }: { p: number; features: ReactNode; cta: ReactNode; socials: ReactNode }) {
   const opacity = (from: number, to: number) => Math.min(span(p, from, from + 0.04), 1 - span(p, to - 0.04, to));
   return (
     <div className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center">
-      {SECTIONS.map((s) => (
+      {SECTIONS.map((s, i) => (
         <h1 key={s.title} aria-hidden={opacity(s.from, s.to) < 0.5} style={{ opacity: opacity(s.from, s.to) }}
-          className="h1-gradient absolute left-1/2 top-[14%] w-[92%] max-w-4xl -translate-x-1/2 text-5xl md:text-7xl">
+          className={cx('h1-gradient absolute left-1/2 top-[14%] w-[92%] max-w-5xl -translate-x-1/2 text-center', i === 0 ? 'text-5xl md:text-7xl' : 'text-4xl md:text-6xl')}>
           {s.title}
         </h1>
       ))}
-      <div className="absolute bottom-8 left-1/2 w-full -translate-x-1/2 px-6" style={{ opacity: 1 - span(p, 0.08, 0.14) }}>
+      <div className="absolute bottom-8 left-1/2 w-full -translate-x-1/2 px-6" style={{ opacity: 1 - span(p, 0.03, 0.07), visibility: p > 0.07 ? 'hidden' : 'visible' }}>
         <div className="pointer-events-auto">{cta}</div>
       </div>
-      <div className="absolute inset-x-0 top-1/2 mx-auto w-full max-w-5xl -translate-y-1/2 space-y-6 px-6"
+      <div className="absolute inset-x-0 top-1/2 mx-auto w-full max-w-3xl -translate-y-1/2 space-y-4 px-6"
         style={{ opacity: span(p, 0.93, 0.98), visibility: p > 0.92 ? 'visible' : 'hidden' }}>
-        <h2 className="text-5xl text-ink-900 md:text-7xl">Start climbing</h2>
+        <h2 className="text-center text-4xl text-ink-900 md:text-6xl">Start climbing</h2>
         <div className="pointer-events-auto [&_.glass]:!bg-ink-900/85">{features}</div>
         <div className="pointer-events-auto">{cta}</div>
+        <div className="pointer-events-auto [&_.btn-gold]:!bg-ink-900/85">{socials}</div>
       </div>
     </div>
   );
 }
 
 /** The Ascent: a 500vh page with a sticky canvas. The camera moves only with scroll. */
-export default function Ascent({ features, cta }: { features: ReactNode; cta: ReactNode }) {
+export default function Ascent({ features, cta, socials }: { features: ReactNode; cta: ReactNode; socials: ReactNode }) {
   const progress = useRef(0);
   const [p, setP] = useState(0);
   const [slow, setSlow] = useState(false);
@@ -277,13 +283,13 @@ export default function Ascent({ features, cta }: { features: ReactNode; cta: Re
         <Canvas
           frameloop="demand"
           dpr={[1, 1.5]}
-          camera={{ fov: 42, near: 0.1, far: 120, position: [0, 2.4, 6.2] }}
+          camera={{ fov: 42, near: 0.1, far: 120, position: [0, 4.2, 14.6] }}
           onCreated={(state) => { invalidateRef.current = state.invalidate; state.invalidate(); }}
         >
           <Scene progress={progress} />
         </Canvas>
-        <div className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2" style={{ opacity: 1 - span(p, 0.9, 0.95) }}><Logo size={64} /></div>
-        <Overlay p={p} features={features} cta={cta} />
+        <div className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2" style={{ opacity: Math.min(Math.max(1 - span(p, 0.03, 0.07), span(p, 0.26, 0.3)), 1 - span(p, 0.9, 0.95)) }}><Logo size={64} /></div>
+        <Overlay p={p} features={features} cta={cta} socials={socials} />
       </div>
     </div>
   );

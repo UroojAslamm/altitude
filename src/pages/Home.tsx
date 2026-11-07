@@ -1,14 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
-import { Clock, Facebook, Globe, Instagram, Music2, Sofa, Star, Twitter, Zap } from 'lucide-react';
+import { Clock, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Page } from '@/components/AppShell';
 import { PhotoBackdrop } from '@/components/brand';
 import { DrinkArt } from '@/components/DrinkArt';
+import { SocialButtons } from '@/components/SocialButtons';
 import { Badge, Card, cx, Modal, Button, ProgressRing, Skeleton, TIER_LABEL, TierShield } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useMenu, useMyOrders, useRealtime, useSettings } from '@/lib/queries';
-import { aed, commonHourLeft, dubaiDate, dubaiTime, tierFor, tierProgress } from '@/lib/rules';
+import { aed, commonHourLabel, commonHourLeft, tierFor, tierProgress } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { MenuItem } from '@/lib/types';
 
@@ -16,19 +17,17 @@ interface Dotm { menu_item_id: string; headline: string; special_price_fils: num
 interface Announcement { id: string; title: string; body: string; kind: string }
 interface Popular { menu_item_id: string; name: string; kind: string; accent_color: string; base_price_fils: number; qty_sold: number }
 interface Busy { hour: number; orders: number; avg_wait_seconds: number }
-interface EventRow { id: string; title: string; place: string; starts_at: string }
 
 function useHomeData() {
   return useQuery({
     queryKey: ['home'],
     queryFn: async () => {
       const nowIso = new Date().toISOString();
-      const [dotm, ann, popular, busy, events, favs] = await Promise.all([
+      const [dotm, ann, popular, busy, favs] = await Promise.all([
         supabase.from('drink_of_month').select('menu_item_id,headline,special_price_fils').eq('is_active', true).maybeSingle(),
         supabase.from('announcements').select('id,title,body,kind').eq('is_active', true).lte('starts_at', nowIso).gte('ends_at', nowIso).limit(1),
         supabase.from('popular_items').select('*').limit(5),
         supabase.from('busy_hours').select('*'),
-        supabase.from('events').select('id,title,place,starts_at').eq('status', 'approved').gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('favorites').select('menu_item_id').limit(4),
       ]);
       const dotmRow = dotm.data as Dotm | null;
@@ -42,7 +41,6 @@ function useHomeData() {
         announcement: (ann.data as Announcement[] | null)?.[0] ?? null,
         popular: (popular.data as Popular[] | null) ?? [],
         busy: (busy.data as Busy[] | null) ?? [],
-        events: (events.data as EventRow[] | null) ?? [],
         favorites: ((favs.data as Array<{ menu_item_id: string }> | null) ?? []).map((f) => f.menu_item_id),
       };
     },
@@ -71,7 +69,7 @@ function BusyCard({ busy, open, close }: { busy: Busy[]; open: string; close: st
       <div className="mt-3 flex h-20 items-end gap-1" role="img" aria-label="Orders by hour over the last 28 days">
         {hours.map((h) => (
           <div key={h.hour} className="flex h-full flex-1 flex-col justify-end">
-            <div className={cx('rounded-t', h.hour === best.hour ? 'brass' : 'bg-oak-600/60')} style={{ height: `${(h.orders / max) * 100}%` }} />
+            <div className={cx('rounded-t', h.hour === best.hour ? 'brass-soft' : 'bg-oak-600/60')} style={{ height: `${(h.orders / max) * 100}%` }} />
             <span className="tabular mt-1 text-center text-[10px] text-cream-300">{h.hour}</span>
           </div>
         ))}
@@ -95,8 +93,6 @@ function ExamPopup({ announcement }: { announcement: Announcement }) {
   );
 }
 
-const SOCIAL = { instagram: Instagram, tiktok: Music2, x: Twitter, facebook: Facebook, google: Star, website: Globe };
-
 export function HomePage() {
   const { profile, session } = useAuth();
   const uid = session?.user.id;
@@ -119,8 +115,6 @@ export function HomePage() {
   const usual = (home.data?.favorites ?? []).map((id) => items.find((i) => i.id === id)).filter((i): i is MenuItem => Boolean(i));
   const hourLeft = s ? commonHourLeft(s.common_hour_start, s.common_hour_end, s.common_hour_days) : null;
   const firstName = profile.full_name.split(' ')[0];
-  const seat = { plenty: 'Plenty of seats', few: 'Few seats left', full: 'Seats are full' }[s?.seat_status ?? 'plenty'];
-  const links = Object.entries(s?.social_links ?? {}).filter(([, url]) => url);
 
   return (
     <>
@@ -172,10 +166,9 @@ export function HomePage() {
           )}
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              <span className="glass inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 text-sm"><Sofa size={20} strokeWidth={1.75} />{seat}</span>
               <span className="glass inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 text-sm">
                 {hourLeft !== null ? <Zap size={20} strokeWidth={1.75} className="text-glow-500" /> : <Clock size={20} strokeWidth={1.75} />}
-                {hourLeft !== null ? `Common Hour: 2x meters, ${hourLeft} min left` : 'Common Hour 2 to 4 PM, 2x meters'}
+                {hourLeft !== null ? `Common Hour: ${s?.common_hour_multiplier}x meters, ${hourLeft} min left` : s ? `Common Hour ${commonHourLabel(s.common_hour_start, s.common_hour_end)}, ${s.common_hour_multiplier}x meters` : 'Common Hour'}
               </span>
             </div>
             {s && home.data && <BusyCard busy={home.data.busy} open={s.open_time} close={s.close_time} />}
@@ -196,29 +189,11 @@ export function HomePage() {
             <div className="flex gap-3 overflow-x-auto pb-1">{usual.map((i) => <MiniItem key={i.id} item={i} />)}</div>
           </section>
         )}
-        {(home.data?.events.length ?? 0) > 0 && (
-          <section>
-            <div className="mb-2 flex items-center justify-between"><h2 className="text-2xl">Upcoming events</h2><Link to="/events" className="text-sm text-glow-300 underline">All events</Link></div>
-            <div className="grid gap-3 md:grid-cols-3">
-              {home.data?.events.map((e) => (
-                <Card key={e.id}><div className="font-semibold">{e.title}</div><p className="tabular text-sm text-cream-300">{dubaiDate(e.starts_at)}, {dubaiTime(e.starts_at)} · {e.place}</p></Card>
-              ))}
-            </div>
-          </section>
-        )}
         <nav aria-label="More" className="flex flex-wrap gap-2">
           <Link to="/offers" className="btn btn-secondary glass">Offers</Link>
           <Link to="/clubs" className="btn btn-secondary glass">Clubs</Link>
-          <Link to="/lab" className="btn btn-secondary glass">Drink Lab</Link>
         </nav>
-        {links.length > 0 && (
-          <footer className="flex justify-center gap-2">
-            {links.map(([name, url]) => {
-              const Icon = SOCIAL[name as keyof typeof SOCIAL] ?? Globe;
-              return <a key={name} href={url} target="_blank" rel="noreferrer" aria-label={name} className="btn btn-secondary glass !w-11 !px-0"><Icon size={20} strokeWidth={1.75} /></a>;
-            })}
-          </footer>
-        )}
+        <SocialButtons links={s?.social_links} />
       </Page>
     </>
   );

@@ -1,11 +1,11 @@
 import { ContactShadows, Environment, Lightformer } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { forwardRef, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { isMobile } from './support';
 
 /** Procedural studio: warm key from top left, cool navy rim, amber kicker. No HDR downloads. */
-export function Studio({ intensity = 1 }: { intensity?: number }) {
+export function Studio({ intensity = 1, rim = '#3A4BB0', children }: { intensity?: number; rim?: string; children?: ReactNode }) {
   return (
     <>
       <ambientLight intensity={0.25} />
@@ -13,9 +13,10 @@ export function Studio({ intensity = 1 }: { intensity?: number }) {
       <Environment resolution={128} frames={1}>
         <color attach="background" args={['#0B0908']} />
         <Lightformer form="rect" intensity={5 * intensity} color="#FFD9A0" position={[-4, 5, 3]} scale={[6, 4, 1]} />
-        <Lightformer form="rect" intensity={2.4 * intensity} color="#3A4BB0" position={[5, 1, -3]} scale={[3, 7, 1]} />
+        <Lightformer form="rect" intensity={2.4 * intensity} color={rim} position={[5, 1, -3]} scale={[3, 7, 1]} />
         <Lightformer form="ring" intensity={2.4 * intensity} color="#F5B14A" position={[0, -3, 3]} scale={3} />
         <Lightformer form="rect" intensity={1.2 * intensity} color="#FBF7EF" position={[0, 6, -2]} scale={[8, 1, 1]} />
+        {children}
       </Environment>
     </>
   );
@@ -64,6 +65,7 @@ function useCupParts() {
       wall,
       base: lathe([[0, 0], [0.62, 0], [0.665, 0.012], [0.68, 0.04], [0.712, WALL_BOTTOM + 0.02]]),
       lip: lathe(lipProfile()),
+      liner: lathe([[0, 0.34], [0.62, 0.34], [0.88, 1.9]]),
     };
   }, []);
 }
@@ -196,8 +198,9 @@ function useCupArt() {
 
 const PAPER = { roughness: 0.82, metalness: 0, envMapIntensity: 0.55, side: THREE.DoubleSide };
 
-export const PaperCup = forwardRef<THREE.Group, JSX.IntrinsicElements['group']>(function PaperCup(props, ref) {
-  const { wall, base, lip } = useCupParts();
+/** With empty set the cup has no coffee, so something can be poured into it. */
+export const PaperCup = forwardRef<THREE.Group, JSX.IntrinsicElements['group'] & { empty?: boolean }>(function PaperCup({ empty = false, ...props }, ref) {
+  const { wall, base, lip, liner } = useCupParts();
   const art = useCupArt();
   return (
     <group ref={ref} {...props}>
@@ -213,11 +216,14 @@ export const PaperCup = forwardRef<THREE.Group, JSX.IntrinsicElements['group']>(
         </mesh>
         <mesh geometry={base}><meshStandardMaterial {...PAPER} color="#E9E6DF" /></mesh>
         <mesh geometry={lip}><meshStandardMaterial {...PAPER} color="#FBFAF6" /></mesh>
+        {empty && <mesh geometry={liner}><meshStandardMaterial {...PAPER} color="#D9D3C7" /></mesh>}
       </group>
-      <mesh position={[0, 1.95, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.89, 64]} />
-        <meshStandardMaterial key={art ? 'crema' : 'plain'} map={art?.crema ?? null} color={art ? '#C9B8A4' : '#7A4A25'} roughness={0.62} envMapIntensity={0.2} />
-      </mesh>
+      {!empty && (
+        <mesh position={[0, 1.95, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.89, 64]} />
+          <meshStandardMaterial key={art ? 'crema' : 'plain'} map={art?.crema ?? null} color={art ? '#C9B8A4' : '#7A4A25'} roughness={0.62} envMapIntensity={0.2} />
+        </mesh>
+      )}
     </group>
   );
 });

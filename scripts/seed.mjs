@@ -19,7 +19,7 @@ const ACCOUNTS = [
   { email: 'student2@altitude.demo', name: 'Omar Demo', role: 'student', meters: 420 },
   { email: 'student3@altitude.demo', name: 'Lina Demo', role: 'student', meters: 950 },
   { email: 'student4@altitude.demo', name: 'Zayn Demo', role: 'student', meters: 1720 },
-  { email: 'barista@altitude.demo', name: 'Altitude Barista', role: 'barista', meters: 0 },
+  { email: 'barista@altitude.demo', name: 'Sara Demo', role: 'barista', meters: 0 },
   { email: 'admin@altitude.demo', name: 'Altitude Manager', role: 'admin', meters: 0 },
   { email: 'clublead@altitude.demo', name: 'Club Lead Demo', role: 'club_lead', meters: 120 },
   { email: 'history@altitude.demo', name: 'Seed History', role: 'student', meters: 0 },
@@ -174,6 +174,7 @@ async function seedMenu() {
   // Hours and links from the same page. Friday closes at 16:00 there; settings hold one close time.
   must(await db.from('settings').update({
     open_time: '08:00', close_time: '19:00', days_open: [1, 2, 3, 4, 5],
+    common_hour_start: '12:00', common_hour_end: '13:00',
     social_links: {
       instagram: 'https://www.instagram.com/altitude_dxb/',
       facebook: 'https://www.facebook.com/profile.php?id=100075548482716',
@@ -296,15 +297,8 @@ async function seedCommunity(items, ids) {
   const ledger = ACCOUNTS.filter((a) => a.meters > 0).map((a) => ({ user_id: ids[a.email], delta: a.meters, reason: 'adjustment' }));
   must(await db.from('meter_ledger').insert(ledger), 'ledger');
 
-  // Events.
+  // Events and Drink Lab are gone from the app. Clear any old rows.
   must(await db.from('events').delete().gte('created_at', '2000-01-01'), 'events clear');
-  const inDays = (n, h) => new Date(`${dubaiDate(-n)}T${String(h).padStart(2, '0')}:00:00+04:00`).toISOString();
-  must(await db.from('events').insert([
-    { club_id: clubs.AIRC, title: 'Prompt Night', description: 'Bring a laptop and a hard problem.', place: 'Altitude lounge', starts_at: inDays(3, 16), status: 'approved', rsvp_count: 14 },
-    { club_id: clubs.IEEE, title: 'Circuit Clinic', description: 'Peer help for lab reports.', place: 'Lab block', starts_at: inDays(5, 13), status: 'approved', rsvp_count: 9 },
-    { club_id: clubs.Debate, title: 'Open Floor Debate', description: 'Topic announced on the day.', place: 'Main hall', starts_at: inDays(8, 15), status: 'approved', rsvp_count: 21 },
-    { club_id: clubs.Robotics, title: 'Line Follower Sprint', description: 'Waiting for approval.', place: 'Workshop', starts_at: inDays(10, 14), status: 'pending', rsvp_count: 0 },
-  ]), 'events');
 
   // Reviews.
   must(await db.from('reviews').delete().eq('is_seed', true), 'reviews clear');
@@ -317,22 +311,13 @@ async function seedCommunity(items, ids) {
     user_id: s(n), menu_item_id: byName[item].id, rating, body, author_name, is_seed: true,
   }))), 'reviews');
 
-  // Drink Lab.
   must(await db.from('drink_submissions').delete().eq('is_seed', true), 'lab clear');
-  const month = dubaiDate(0).slice(0, 7) + '-01';
-  must(await db.from('drink_submissions').insert([
-    { user_id: s(2), author_name: 'Omar', name: 'Finals Fuel', description: 'Iced Americano with a hit of vanilla and sea salt foam.', base_item_id: byName['Iced Americano'].id, ingredients: 'Espresso, vanilla, salted foam', month, vote_count: 18, is_seed: true },
-    { user_id: s(3), author_name: 'Lina', name: 'Saffron Sunrise', description: 'Iced latte with saffron and cardamom.', base_item_id: byName['Iced Spanish Latte'].id, ingredients: 'Espresso, milk, saffron, cardamom', month, vote_count: 24, is_seed: true },
-    { user_id: s(4), author_name: 'Zayn', name: 'Mango Peak', description: "Pash n' Shoot with a ginger kick.", base_item_id: byName["Pash n' Shoot Smoothie"].id, ingredients: 'Mango, passionfruit, ginger', month, vote_count: 11, is_seed: true },
-    { user_id: ids['clublead@altitude.demo'], author_name: 'Club', name: 'Date Night', description: 'Latte with date syrup.', base_item_id: byName['Cafe Latte'].id, ingredients: 'Espresso, milk, date syrup', month, vote_count: 15, is_seed: true },
-    { user_id: s(1), author_name: 'Aisha', name: 'Rose Cloud', description: 'Cold foam with rose water over espresso.', base_item_id: byName['Cafe Latte'].id, ingredients: 'Espresso, cold foam, rose water', month, vote_count: 9, is_seed: true },
-  ]), 'lab');
 
   // Announcement and promo.
   must(await db.from('announcements').delete().gte('created_at', '2000-01-01'), 'ann clear');
   must(await db.from('promos').delete().gte('created_at', '2000-01-01'), 'promo clear');
   const week = new Date(Date.now() + 7 * 86400e3).toISOString();
-  must(await db.from('announcements').insert({ title: 'Exam week fuel', body: 'Double up during Common Hour, 2 to 4 PM.', kind: 'exam_week', ends_at: week }), 'announcement');
+  must(await db.from('announcements').insert({ title: 'Exam week fuel', body: 'Double up during Common Hour, 12 to 1 PM.', kind: 'exam_week', ends_at: week }), 'announcement');
   must(await db.from('promos').insert({ title: 'Affogato Week', description: '15% off this week\'s special.', kind: 'percent', value: 15, applies_to_item_id: byName.Affogato.id, ends_at: week }), 'promo');
 }
 

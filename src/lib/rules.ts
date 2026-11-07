@@ -98,6 +98,24 @@ export function commonHourLeft(start: string, end: string, days: number[], now =
   return toMinutes(end) - minutes;
 }
 
+const clockHour = (t: string) => {
+  const h = Number(t.slice(0, 2));
+  return { hour: h % 12 || 12, half: h < 12 ? 'AM' : 'PM' };
+};
+
+/** "12:00" and "13:00" become "12 to 1 PM". */
+export function commonHourLabel(start: string, end: string) {
+  const a = clockHour(start);
+  const b = clockHour(end);
+  return `${a.hour}${a.half === b.half ? '' : ` ${a.half}`} to ${b.hour} ${b.half}`;
+}
+
+/** Favorites first. Otherwise the menu keeps its order. */
+export function pinFavorites<T extends { id: string }>(items: T[], favorites: ReadonlySet<string> | undefined) {
+  if (!favorites?.size) return items;
+  return [...items.filter((i) => favorites.has(i.id)), ...items.filter((i) => !favorites.has(i.id))];
+}
+
 const ERRORS: Array<[RegExp, string]> = [
   [/ITEM_UNAVAILABLE:(.+)/, '$1 just sold out. Pick another?'],
   [/OPTION_UNAVAILABLE:(.+)/, '$1 just ran out. Pick another option?'],
@@ -110,8 +128,7 @@ const ERRORS: Array<[RegExp, string]> = [
   [/SQUAD_FULL/, 'That squad is full.'],
   [/CLUB_LIMIT/, 'You can join up to 3 clubs.'],
   [/REVIEW_NEEDS_ORDER/, 'Order this item first, then review it.'],
-  [/ALREADY_SUBMITTED/, 'You already submitted a drink this month.'],
-  [/OWN_SUBMISSION/, "You can't vote for your own drink."],
+  [/ALREADY_TIPPED/, 'This order already has a tip. Thank you.'],
   [/NO_TICKETS/, 'No spin tickets yet. Every 5 orders earns one.'],
   [/FORBIDDEN/, "You don't have access to do that."],
   [/ILLEGAL_TRANSITION/, 'That order has already moved on.'],

@@ -6,10 +6,10 @@ import { Button, Field } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { env, supabase } from '@/lib/supabase';
 
-const DEMO = [
-  { label: 'Try as Student', email: 'student1@altitude.demo' },
-  { label: 'Try as Barista', email: 'barista@altitude.demo' },
-  { label: 'Try as Admin', email: 'admin@altitude.demo' },
+const DEMO_STUDENT = 'student1@altitude.demo';
+const DEMO_STAFF = [
+  { label: 'Barista', email: 'barista@altitude.demo' },
+  { label: 'Admin', email: 'admin@altitude.demo' },
 ];
 
 const signupSchema = z.object({
@@ -49,6 +49,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [staff, setStaff] = useState(false);
 
   if (session && profile) return <Navigate to={homeFor(profile.role)} replace />;
 
@@ -80,11 +81,15 @@ export function LoginPage() {
       {env.demoLogin && env.demoPassword && (
         <div className="mt-4 space-y-2">
           <div className="brass-rule" />
-          {DEMO.map((d) => (
-            <Button key={d.email} variant="secondary" disabled={busy} className="w-full" onClick={() => void login(d.email, env.demoPassword)}>
-              {d.label}
-            </Button>
-          ))}
+          <Button variant="secondary" disabled={busy} className="w-full" onClick={() => void login(DEMO_STUDENT, env.demoPassword)}>Try as Student</Button>
+          <Button variant="secondary" disabled={busy} className="w-full" aria-expanded={staff} onClick={() => setStaff(!staff)}>Try as Staff</Button>
+          {staff && (
+            <div className="grid grid-cols-2 gap-2">
+              {DEMO_STAFF.map((d) => (
+                <Button key={d.email} disabled={busy} onClick={() => void login(d.email, env.demoPassword)}>{d.label}</Button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </AuthFrame>

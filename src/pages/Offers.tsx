@@ -3,7 +3,7 @@ import { Page, PageHeader } from '@/components/AppShell';
 import { Card, EmptyState, ErrorState, Skeleton, TIER_LABEL, TierShield } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useSettings, useVouchers } from '@/lib/queries';
-import { dubaiDate } from '@/lib/rules';
+import { commonHourLabel, dubaiDate } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import { PERKS } from './Me';
 
@@ -40,7 +40,7 @@ export default function OffersPage() {
         {s && (
           <Card>
             <h2 className="text-2xl">Common Hour</h2>
-            <p className="text-cream-100">{s.common_hour_multiplier}x meters, {s.common_hour_start.slice(0, 5)} to {s.common_hour_end.slice(0, 5)}, Monday to Friday.</p>
+            <p className="text-cream-100">{s.common_hour_multiplier}x meters, {commonHourLabel(s.common_hour_start, s.common_hour_end)}, Monday to Friday.</p>
           </Card>
         )}
         <Card>

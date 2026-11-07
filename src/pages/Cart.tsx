@@ -9,9 +9,10 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { cartPayload, useCart } from '@/lib/cart';
-import { useMenu, useSettings, useVouchers } from '@/lib/queries';
+import { useMenu, useVouchers } from '@/lib/queries';
 import { payments } from '@/lib/payment';
 import { aed, friendlyError } from '@/lib/rules';
+import { playAlert } from '@/lib/chime';
 import { supabase } from '@/lib/supabase';
 import type { PricePreview } from '@/lib/types';
 
@@ -71,7 +72,6 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const client = useQueryClient();
-  const settings = useSettings();
   const vouchers = useVouchers(session?.user.id);
   const [notes, setNotes] = useState('');
   const [dine, setDine] = useState<'in' | 'away'>('in');
@@ -100,8 +100,7 @@ export function CheckoutPage() {
   });
 
   const tipFils = customTip ? Math.min(10000, Math.max(0, Math.round(Number(customTip) * 100) || 0)) : tip;
-  const accepting = settings.data?.accepting_orders ?? true;
-  const canOrder = accepting && open.data !== false && preview.isSuccess;
+  const canOrder = open.data !== false && preview.isSuccess;
 
   async function placeOrder() {
     if (lock.current) return;
@@ -121,6 +120,7 @@ export function CheckoutPage() {
       return;
     }
     const result = data as { order_id: string };
+    playAlert('placed');
     clear();
     void client.invalidateQueries({ queryKey: ['orders'] });
     void client.invalidateQueries({ queryKey: ['vouchers'] });
@@ -136,7 +136,6 @@ export function CheckoutPage() {
     <>
       <PageHeader title="Checkout" />
       <Page className="lg:max-w-2xl">
-        {!accepting && <div role="alert" className="rounded-xl border border-mango-400/50 bg-ink-800 p-3">The counter has paused new orders for a moment.</div>}
         {open.data === false && <div role="alert" className="rounded-xl border border-mango-400/50 bg-ink-800 p-3">Altitude is closed right now.</div>}
         {preview.isError && <div role="alert" className="rounded-xl border border-berry-500/60 bg-[#3A1418] p-3">{friendlyError(preview.error.message)}</div>}
         <Card>

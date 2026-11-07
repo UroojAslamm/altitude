@@ -152,7 +152,7 @@ for (const [name, viewport] of [['phone', { width: 390, height: 844 }], ['laptop
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     page.on('pageerror', (e) => errors.push(e.message));
     await login(page, 'student4@altitude.demo');
-    for (const path of ['/', '/menu', '/cart', '/orders', '/squad', '/me', '/offers', '/clubs', '/events', '/lab']) {
+    for (const path of ['/', '/menu', '/cart', '/orders', '/squad', '/me', '/offers', '/clubs']) {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
       await page.screenshot({ path: `test-results/shots/${name}${path.replace(/\//g, '-')}.png`, fullPage: true });
@@ -161,3 +161,46 @@ for (const [name, viewport] of [['phone', { width: 390, height: 844 }], ['laptop
     await ctx.close();
   });
 }
+
+test('review dialog, barista name, tip, and ready pop-up off the order page', async ({ page, browser }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page, 'student2@altitude.demo');
+  await order(page);
+  await page.getByRole('button', { name: 'Place order' }).click();
+  await page.waitForURL(/\/orders\/[0-9a-f-]{36}/);
+  const tracker = page.url();
+  const no = (await page.getByRole('heading', { name: /Order #\d+/ }).innerText()).replace(/\D/g, '');
+
+  const barista = await baristaPage(browser);
+  const card = barista.getByTestId(`order-${no}`);
+  await card.getByRole('button', { name: 'Start' }).click();
+  await expect(page.getByTestId('prepared-by')).toContainText('Sara is preparing your order', { timeout: 20_000 });
+  await page.getByRole('button', { name: 'AED 5' }).click();
+  await expect(page.getByText('You tipped AED 5')).toBeVisible({ timeout: 10_000 });
+
+  await page.getByRole('link', { name: 'Menu' }).first().click();
+  await card.getByRole('button', { name: 'Ready' }).click();
+  const popup = page.getByRole('dialog', { name: 'Your drink is ready' });
+  await expect(popup).toBeVisible({ timeout: 20_000 });
+  await popup.getByRole('button', { name: 'View order' }).click();
+  await page.waitForURL(tracker);
+  await page.getByRole('button', { name: 'I got it' }).click();
+
+  await page.getByRole('button', { name: 'Rate your drink' }).click();
+  const dialog = page.getByRole('dialog', { name: /^Rate / });
+  await expect(dialog.getByRole('button', { name: 'Submit' })).toBeInViewport({ ratio: 1 });
+  const box = await dialog.getByRole('heading').boundingBox();
+  expect(box!.y).toBeGreaterThan(0);
+  await barista.context().close();
+});
+
+test('favorites are pinned to the top of the menu', async ({ page }) => {
+  await login(page, 'student4@altitude.demo');
+  await page.goto('/menu');
+  const cards = page.locator('[data-testid="menu-item"]');
+  await cards.last().waitFor();
+  const name = await cards.last().getByRole('heading').innerText();
+  await cards.last().getByRole('button', { name: 'Star as usual' }).click();
+  await expect(cards.first()).toContainText(name, { timeout: 10_000, ignoreCase: true });
+  await cards.first().getByRole('button', { name: 'Remove from favorites' }).click();
+});

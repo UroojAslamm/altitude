@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
 import { useItemOptions, useMenu, useRealtime } from '@/lib/queries';
-import { aed } from '@/lib/rules';
+import { aed, pinFavorites } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { MenuItem, Option } from '@/lib/types';
 
@@ -44,6 +44,7 @@ function FavoriteButton({ itemId, active }: { itemId: string; active: boolean })
         e.preventDefault();
         await supabase.rpc('toggle_favorite', { p_item_id: itemId });
         void client.invalidateQueries({ queryKey: ['favorites'] });
+        void client.invalidateQueries({ queryKey: ['home'] });
       }}
     >
       <Heart size={20} strokeWidth={1.75} className={active ? 'fill-glow-500 text-glow-500' : 'text-cream-300'} />
@@ -87,7 +88,7 @@ export function MenuPage() {
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (menu.data?.items ?? []).filter((i) => {
+    return pinFavorites((menu.data?.items ?? []).filter((i) => {
       if (category && i.category_id !== category) return false;
       if (q && !`${i.name} ${i.description}`.toLowerCase().includes(q)) return false;
       if (filters.tags.some((t) => !i.tags.includes(t))) return false;
@@ -96,8 +97,8 @@ export function MenuPage() {
       if (filters.temp === 'cold' && !['iced', 'smoothie', 'shake'].includes(i.kind)) return false;
       if (filters.caffeine !== null && i.caffeine_level !== filters.caffeine) return false;
       return true;
-    });
-  }, [menu.data, category, query, filters]);
+    }), favorites.data);
+  }, [menu.data, favorites.data, category, query, filters]);
 
   const toggleTag = (t: string) =>
     setFilters((f) => ({ ...f, tags: f.tags.includes(t) ? f.tags.filter((x) => x !== t) : [...f.tags, t] }));

@@ -26,3 +26,15 @@
 - `orders.free_shot_fils` records the free extra shot so the receipt can show it.
 - The landing cup is modelled on the real double-wall takeaway cup in `docs/brand-reference/photo-d-cup.webp`, at the owner's request. It turns once with scroll.
 - Migration 0007 relabels the spin prize as a free light bite, since the real menu has no croissant. The voucher kind stays `free_croissant`.
+
+## Owner review, 7 Nov 2026
+These override the PRD.
+- Removed from the app: events, Drink Lab, birthday vouchers, pause orders, the barista seat control (and the seat chip on Home, since nothing sets it now), the Loyalty card in admin settings, busiest hours, meters issued, and average prep time. The tables and functions behind them stay in the database, unused, so nothing is lost. Tier and squad numbers are now changed in the database only.
+- The Home "Best time to come" card stays. The owner's note was about the analytics tab.
+- Common Hour is 12:00 to 13:00. Labels read it from settings.
+- `orders.prepared_by_name` is a first-name snapshot of whoever pressed Start, because students cannot read staff profiles. `tip_order` adds one tip per order after that. The checkout tip stays. Meters still exclude tips.
+- Sound is on by default and kept per device. It can be changed in Me, on the Counter, and in admin settings.
+- The ready pop-up is global in `AppShell`, so it shows on any screen. The tracker keeps its full-screen panel.
+- `public_social_links()` gives the signed-out landing page Facebook, Instagram, and Google review links without opening `settings` to anon.
+- "Staff button": the owner's wording. The demo login now has Try as Student and Try as Staff, and Staff opens Barista and Admin. Admins also get an Admin button on the Counter.
+- The landing opens on a procedural espresso machine in `src/three/Machine.tsx`. Beans are a function of scroll, so nothing loops. The cup turns once during the pour.

@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/AppShell';
 import { Skeleton } from '@/components/ui';
 import { useAuth, type Role } from '@/lib/auth';
+import { installAudioUnlock } from '@/lib/chime';
 import { supabase } from '@/lib/supabase';
 import { LoginPage, SignupPage } from '@/pages/Auth';
 import { CartPage, CheckoutPage } from '@/pages/Cart';
@@ -18,8 +19,6 @@ const AdminPage = lazy(() => import('@/pages/Admin'));
 const DemoPage = lazy(() => import('@/pages/Demo'));
 const SquadPage = lazy(() => import('@/pages/Squad'));
 const ClubsPage = lazy(() => import('@/pages/Clubs').then((m) => ({ default: m.ClubsPage })));
-const EventsPage = lazy(() => import('@/pages/Clubs').then((m) => ({ default: m.EventsPage })));
-const LabPage = lazy(() => import('@/pages/Lab'));
 const OffersPage = lazy(() => import('@/pages/Offers'));
 
 function Loading() {
@@ -72,6 +71,7 @@ function PerkIssuer() {
 }
 
 export default function App() {
+  useEffect(installAudioUnlock, []);
   return (
     <BrowserRouter>
       <OfflineNotice />
@@ -94,8 +94,6 @@ export default function App() {
             <Route path="/orders/:orderId" element={<RequireRole><TrackerPage /></RequireRole>} />
             <Route path="/squad" element={<RequireRole><SquadPage /></RequireRole>} />
             <Route path="/clubs" element={<RequireRole><ClubsPage /></RequireRole>} />
-            <Route path="/events" element={<RequireRole><EventsPage /></RequireRole>} />
-            <Route path="/lab" element={<RequireRole><LabPage /></RequireRole>} />
             <Route path="/offers" element={<RequireRole><OffersPage /></RequireRole>} />
             <Route path="/me" element={<RequireRole><MePage /></RequireRole>} />
           </Route>

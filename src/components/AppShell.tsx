@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
 import { Logo, PhotoBackdrop, type PhotoName } from './brand';
+import { ReadyWatcher } from './ReadyWatcher';
 import { cx } from './ui';
 
 const TABS = [
@@ -60,6 +61,7 @@ export function AppShell() {
         <Outlet />
       </main>
       <CartButton />
+      <ReadyWatcher />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  bestDiscount, commonHourLeft, etaLabel, etaSeconds, freeShotFils, lineTotal, metersFor, squadBonus, tierFor, tierProgress,
+  bestDiscount, commonHourLabel, commonHourLeft, etaLabel, etaSeconds, freeShotFils, lineTotal, metersFor, pinFavorites, squadBonus, tierFor, tierProgress,
 } from '@/lib/rules';
 
 describe('pricing', () => {
@@ -67,5 +67,19 @@ describe('Common Hour', () => {
     const outside = new Date('2026-11-09T13:00:00Z'); // Monday 17:00 Dubai
     expect(commonHourLeft('14:00', '16:00', [1, 2, 3, 4, 5], inside)).toBe(60);
     expect(commonHourLeft('14:00', '16:00', [1, 2, 3, 4, 5], outside)).toBeNull();
+  });
+});
+
+describe('owner review helpers', () => {
+  it('labels Common Hour in plain time', () => {
+    expect(commonHourLabel('12:00:00', '13:00:00')).toBe('12 to 1 PM');
+    expect(commonHourLabel('14:00', '16:00')).toBe('2 to 4 PM');
+    expect(commonHourLabel('11:00', '13:00')).toBe('11 AM to 1 PM');
+  });
+
+  it('pins favorites first and keeps the rest in order', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
+    expect(pinFavorites(items, new Set(['c', 'b'])).map((i) => i.id)).toEqual(['b', 'c', 'a', 'd']);
+    expect(pinFavorites(items, undefined)).toBe(items);
   });
 });

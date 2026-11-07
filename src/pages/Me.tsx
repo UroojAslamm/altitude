@@ -1,9 +1,10 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { lazy, Suspense, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Page, PageHeader } from '@/components/AppShell';
 import { RewardWheel } from '@/components/RewardWheel';
-import { Badge, Button, Card, EmptyState, Field, ProgressRing, Skeleton, Stat, TIER_LABEL, TierShield, useToast } from '@/components/ui';
+import { SoundSettings } from '@/components/SoundSettings';
+import { Badge, Button, Card, EmptyState, ProgressRing, Skeleton, Stat, TIER_LABEL, TierShield } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useSettings, useVouchers } from '@/lib/queries';
 import { dubaiDate, tierFor, tierProgress } from '@/lib/rules';
@@ -24,10 +25,6 @@ export function MePage() {
   const uid = session?.user.id;
   const settings = useSettings();
   const vouchers = useVouchers(uid);
-  const client = useQueryClient();
-  const toast = useToast();
-  const [month, setMonth] = useState('');
-  const [day, setDay] = useState('');
   const ledger = useQuery({
     queryKey: ['ledger', uid],
     enabled: Boolean(uid),
@@ -41,18 +38,6 @@ export function MePage() {
   const tier = tierFor(profile.total_meters, settings.data?.tier_thresholds);
   const progress = tierProgress(profile.total_meters, settings.data?.tier_thresholds);
   const ring = <ProgressRing value={progress.fraction} size={120}><TierShield tier={tier} size={52} /></ProgressRing>;
-
-  async function saveBirthday() {
-    const m = Number(month);
-    const d = Number(day);
-    if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) {
-      toast('Enter a month from 1 to 12 and a day from 1 to 31', 'error');
-      return;
-    }
-    const { error } = await supabase.from('profiles').update({ birth_month: m, birth_day: d }).eq('id', uid!);
-    toast(error ? 'That did not save. Try again.' : 'Birthday saved', error ? 'error' : 'info');
-    void client.invalidateQueries({ queryKey: ['profile', uid] });
-  }
 
   return (
     <>
@@ -107,15 +92,8 @@ export function MePage() {
           </ul>
         </Card>
         <Card>
-          <h2 className="text-2xl">Birthday</h2>
-          <p className="mb-2 text-sm text-cream-300">Optional. Month and day only. You get a Mystery Cup on the day.</p>
-          {profile.birth_month ? <p>Saved: {profile.birth_day}/{profile.birth_month}</p> : (
-            <div className="flex items-end gap-2">
-              <div className="w-24"><Field label="Month" inputMode="numeric" value={month} onChange={(e) => setMonth(e.target.value)} /></div>
-              <div className="w-24"><Field label="Day" inputMode="numeric" value={day} onChange={(e) => setDay(e.target.value)} /></div>
-              <Button variant="secondary" onClick={() => void saveBirthday()}>Save</Button>
-            </div>
-          )}
+          <h2 className="mb-2 text-2xl">Sound</h2>
+          <SoundSettings />
         </Card>
         <div className="flex flex-wrap gap-2">
           <Link to="/orders" className="btn btn-secondary glass">Order history</Link>

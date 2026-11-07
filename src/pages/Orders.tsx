@@ -1,18 +1,18 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Page, PageHeader } from '@/components/AppShell';
 import { CupFallback } from '@/components/CupFallback';
 import { Logo } from '@/components/brand';
 import {
-  Badge, Button, Card, cx, EmptyState, ErrorState, Modal, Rating, Skeleton, TextArea, TIER_LABEL, TierShield, useToast, type Tier,
+  Badge, Button, Card, Chip, cx, EmptyState, ErrorState, Modal, Rating, Skeleton, TextArea, TIER_LABEL, TierShield, useToast, type Tier,
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
-import { playChime } from '@/lib/chime';
 import { useMenu, useMyOrders, useOrder, useQueueInfo, useRealtime } from '@/lib/queries';
 import { aed, dubaiDate, dubaiTime, etaLabel, friendlyError } from '@/lib/rules';
+import { payments } from '@/lib/payment';
 import { supabase } from '@/lib/supabase';
 import type { MeterBreakdown, Order, OrderStatus } from '@/lib/types';
 import { can3d, ThreeBoundary } from '@/three/support';
@@ -50,11 +50,46 @@ function ReadyPanel({ order, onDone }: { order: Order; onDone: () => void }) {
             <p className="font-display text-7xl font-bold uppercase tracking-wider text-glow-300">Ready</p>
             <p className="tabular mt-2 text-2xl">Order #{order.order_no}</p>
             <p className="mt-2 text-cream-300">Collect it at the counter.</p>
+            {order.prepared_by_name && <p className="text-cream-300">Prepared by {order.prepared_by_name}.</p>}
             <Button className="mt-6 w-full" onClick={onDone}>I got it</Button>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+const TIPS = [200, 500, 1000];
+
+/** Who is making the order, with an optional tip once a barista has picked it up. */
+function BaristaCard({ order }: { order: Order }) {
+  const toast = useToast();
+  const client = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const name = order.prepared_by_name;
+  if (!name) return null;
+
+  async function tip(fils: number) {
+    setBusy(true);
+    if (order.payment_status === 'paid') await payments.charge(fils, order.id);
+    const { error } = await supabase.rpc('tip_order', { p_order_id: order.id, p_tip_fils: fils });
+    toast(error ? friendlyError(error.message) : `Thanks. ${name} got your tip.`, error ? 'error' : 'info');
+    await client.invalidateQueries({ queryKey: ['order', order.id] });
+    setBusy(false);
+  }
+
+  return (
+    <Card>
+      <p className="text-lg" data-testid="prepared-by">{order.status === 'preparing' ? `${name} is preparing your order` : `Prepared by ${name}`}</p>
+      {order.tip_fils > 0 ? <p className="tabular text-sm text-cream-300">You tipped {aed(order.tip_fils)}. Thank you.</p> : (
+        <>
+          <p className="mb-2 text-sm text-cream-300">Want to tip {name}? It's optional.</p>
+          <div className="flex flex-wrap gap-2">
+            {TIPS.map((t) => <Chip key={t} active={false} disabled={busy} onClick={() => void tip(t)}>{aed(t)}</Chip>)}
+          </div>
+        </>
+      )}
+    </Card>
   );
 }
 
@@ -139,13 +174,7 @@ export function TrackerPage() {
     `order-${orderId}`,
   );
 
-  const previous = useRef<OrderStatus | undefined>(undefined);
   useEffect(() => {
-    if (status === 'ready' && previous.current && previous.current !== 'ready') {
-      playChime();
-      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-    }
-    previous.current = status;
     const original = 'ASCEND by Altitude';
     document.title = status === 'ready' && order.data ? `READY #${order.data.order_no}` : original;
     return () => { document.title = original; };
@@ -193,6 +222,7 @@ export function TrackerPage() {
             ) : <CupFallback status={o.status} accent={accent} />}
           </div>
         )}
+        <BaristaCard order={o} />
         {o.status === 'completed' && o.meter_breakdown && <Earned breakdown={o.meter_breakdown} order={o} />}
         <Card>
           <ul className="space-y-1">

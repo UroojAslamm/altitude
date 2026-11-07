@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { Minus, Plus, Star, X } from 'lucide-react';
 import {
   createContext, useCallback, useContext, useEffect, useId, useState,
@@ -323,7 +324,8 @@ export function Sheet({
   open, onClose, title, children,
 }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   useEscape(open, onClose);
-  return (
+  // In a portal: a parent with overflow or a backdrop filter would otherwise clip it.
+  return createPortal(
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
@@ -342,7 +344,8 @@ export function Sheet({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 
@@ -350,7 +353,8 @@ export function Modal({
   open, onClose, title, children,
 }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   useEscape(open, onClose);
-  return (
+  // In a portal: a parent with overflow or a backdrop filter would otherwise clip it.
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -359,13 +363,14 @@ export function Modal({
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
           onClick={onClose}
         >
-          <div className="w-full max-w-md rounded-2xl border border-[var(--hairline)] bg-ink-800 p-5 shadow-e3" onClick={(e) => e.stopPropagation()}>
+          <div className="max-h-full w-full max-w-md overflow-y-auto rounded-2xl border border-[var(--hairline)] bg-ink-800 p-5 shadow-e3" onClick={(e) => e.stopPropagation()}>
             <h2 className="mb-3 text-2xl">{title}</h2>
             {children}
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 

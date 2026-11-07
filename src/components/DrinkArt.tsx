@@ -18,6 +18,7 @@ export function DrinkArt({ kind, accent, name = '', size = 120, imageUrl }: Prop
   }
   const k = kind as Kind;
   const isCroissant = k === 'bakery' && /croissant/i.test(name);
+  const isBowl = k === 'bakery' && /bowl/i.test(name);
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} role="img" aria-label={name || 'Drink'}>
       <defs>
@@ -106,7 +107,26 @@ export function DrinkArt({ kind, accent, name = '', size = 120, imageUrl }: Prop
         </g>
       )}
 
-      {k === 'bakery' && !isCroissant && (
+      {isBowl && (
+        <g>
+          <path d="M14 58 Q16 98 48 104 H72 Q104 98 106 58 Z" fill={`url(#${uid}c)`} />
+          <path d="M46 104 H74 L71 110 H49 Z" fill="#B9AE9C" />
+          <path d="M22 66 Q26 90 46 98" stroke="#FFF" strokeOpacity=".7" strokeWidth="4" strokeLinecap="round" fill="none" />
+          <ellipse cx="60" cy="58" rx="46" ry="15" fill="#F3EBDD" stroke="#A69A87" strokeWidth=".6" />
+          <ellipse cx="60" cy="58" rx="41" ry="12" fill={`url(#${uid}l)`} />
+          <path d="M26 56 Q44 47 66 49" stroke="#FFF" strokeOpacity=".3" strokeWidth="3" strokeLinecap="round" fill="none" />
+          <g stroke="#D9BE7A" strokeWidth="1">
+            {[[42, 58], [53, 62], [64, 60]].map(([x, y]) => <circle key={x} cx={x} cy={y} r="6.5" fill="#F8EDC4" />)}
+            {[[42, 58], [53, 62], [64, 60]].map(([x, y]) => <circle key={x} cx={x} cy={y} r="1.6" fill="#E5CF90" stroke="none" />)}
+          </g>
+          <path d="M76 50 Q84 49 88 54 Q86 62 79 64 Q72 60 76 50 Z" fill="#C8283C" />
+          <path d="M66 49 Q73 48 76 52 Q75 59 69 60 Q63 56 66 49 Z" fill="#E0394B" />
+          <g fill="#FFD9A8"><circle cx="79" cy="55" r=".7" /><circle cx="83" cy="57" r=".7" /><circle cx="79" cy="60" r=".7" /><circle cx="70" cy="53" r=".7" /><circle cx="71" cy="56" r=".7" /></g>
+          <path d="M80 49 L84 45 M77 49 L76 44" stroke="#5E8C3A" strokeWidth="1.8" strokeLinecap="round" />
+        </g>
+      )}
+
+      {k === 'bakery' && !isCroissant && !isBowl && (
         <g>
           <path d="M22 60 L84 38 L100 58 V92 L38 104 L22 88 Z" fill="#E9D8BC" />
           <path d="M38 76 L100 58 V92 L38 104 Z" fill={`url(#${uid}f)`} />
