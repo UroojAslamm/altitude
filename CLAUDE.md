@@ -12,6 +12,6 @@ Source of truth: `PRD.md`. Overrides from the owner: `DECISIONS.md`. Resume poin
 8. 3D lives in `src/three/`, lazy loaded, ErrorBoundary, 2D fallback. Do not start 3D until P0 and P1 tests are green.
 9. No libraries beyond PRD Section 5 without a reason written in `DECISIONS.md`. No features outside the PRD. No refactoring working code without cause.
 10. Never invent social URLs, student data, or a different logo symbol. Prices are marked placeholders.
-11. Run typecheck, test, and build before every commit; commit after every working slice; update `PROGRESS.md`; push to `main`.
+11. Run typecheck, test, and build before every commit; commit after every working slice; update `PROGRESS.md`; push to `main`. The owner is the only author: no Co-Authored-By or other attribution lines in commits.
 12. Keep context small: read only what you need, summarize errors, no giant logs.
 13. Do not wait for approval between milestones.

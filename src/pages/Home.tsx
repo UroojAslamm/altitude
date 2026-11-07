@@ -118,7 +118,7 @@ export function HomePage() {
 
   return (
     <>
-      <PhotoBackdrop name="wall" position="50% 38%" className="min-h-[260px]">
+      <PhotoBackdrop name="wall" position="50% 0%" className="min-h-[260px]">
         <div className="mx-auto flex h-full min-h-[260px] max-w-[1200px] items-end justify-between gap-4 px-4 pb-5 pt-[calc(1.5rem+env(safe-area-inset-top))]">
           <div>
             <p className="text-cream-100">Hello {firstName}</p>
