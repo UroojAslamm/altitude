@@ -11,7 +11,7 @@
 - Social links: Instagram, Facebook, and Google review, taken from the menu page the owner supplied.
 - Logo: trace `docs/brand-reference/logo-source.png` (150x150) and the cup photo to SVG. Same symbol.
 - Menu: the owner supplied the real menu at https://scanned.page/p/Vop03v. It replaces the poster items and placeholder prices. It has no sizes, so size and syrup options are gone. Obvious typos on that page are corrected (Manuel to Manual, Hibuscus to Hibiscus). Friday closes at 16:00 there, but settings hold one close time, so the app uses 19:00 and `demo_always_open` covers the event.
-- The owner will send the "Elevate your experiences" wall photo (Photo B). Until then use crops of the lounge photo.
+- The Home header uses the owner's "Elevate your experiences" wall photo (Photo B). It is 967 pixels wide, so it looks a little soft on large screens.
 - Pitch deck: build a `.pptx` from the PRD pitch outline with real screenshots, after M8. Team name: Team Pythons.
 
 ## Build decisions

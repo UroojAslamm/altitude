@@ -19,7 +19,6 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 | Extra | Second owner review: checkout items, order history X and last 10, item Back arrow, kept filters, admin header, item-based prep animation | Done. Migrations 0009 to 0012 applied. Orders now reach Ready in 15 seconds for the pitch; set it to 0 in admin settings for a real shift. See DECISIONS.md |
 
 ## Waiting on owner
-- Photo B (wall)
 - Confirm the alternative milk and extra shot charges
 
 ## Morning steps for the owner
@@ -27,4 +26,4 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 2. Before deploying, add these Environment Variables, copied from `.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_PASSWORD`. Never add the service role key or `DATABASE_URL`.
 3. Deploy. Put the URL in `SUBMISSION.md`, then test on a phone.
 4. Open `docs/ASCEND-pitch.pptx` and check it.
-5. Optional: send Photo B, fix the password in `DATABASE_URL` for future `npm run db:migrate`.
+5. Optional: fix the password in `DATABASE_URL` for future `npm run db:migrate`.

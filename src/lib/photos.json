@@ -10,5 +10,9 @@
   "cup": {
     "blur": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAABwBQCdASoYABgAPu1mqU8ppaOiMBgIATAdiWUAxNgNwmt/eh8SRv4Tq1FEKHuYc2+zZi0AAP7ytJJ8GdohxcyiKVK1ggyz5UHHHstqKuKnuDxP3mozhrptiSC+Q495K4iVFdnSA2eA9jXGiuFl+jNsIqz67CawK9YBJoO1H7TYcHcy3V2318llRD+HB4Zg8it4d4Isp7aEAAAA",
     "ratio": 1
+  },
+  "wall": {
+    "blur": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAwCdASoYAAoAPu1iqU2ppaOiMAgBMB2JYgC7ACIZ+3ObPOQ3WGQAAOIrhH3zL15i8FsRUI7Dk3XjhVpNpIMUnPCS/PU71jRYAAAA",
+    "ratio": 2.2969121140142517
   }
 }
