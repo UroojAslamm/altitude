@@ -216,7 +216,7 @@ export const PaperCup = forwardRef<THREE.Group, JSX.IntrinsicElements['group']>(
       </group>
       <mesh position={[0, 1.95, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.89, 64]} />
-        <meshPhysicalMaterial key={art ? 'crema' : 'plain'} map={art?.crema ?? null} color={art ? '#FFFFFF' : '#7A4A25'} roughness={0.34} clearcoat={0.5} clearcoatRoughness={0.3} />
+        <meshStandardMaterial key={art ? 'crema' : 'plain'} map={art?.crema ?? null} color={art ? '#C9B8A4' : '#7A4A25'} roughness={0.62} envMapIntensity={0.2} />
       </mesh>
     </group>
   );
