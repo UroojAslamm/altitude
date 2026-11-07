@@ -1,6 +1,7 @@
 // Seeds demo data over HTTPS with the service role key. Safe to re-run.
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { reviewRows } from './reviews.mjs';
 
 dotenv.config({ path: '.env.local' });
 const { VITE_SUPABASE_URL: url, SUPABASE_SERVICE_ROLE_KEY: key, DEMO_PASSWORD: password } = process.env;
@@ -291,14 +292,7 @@ async function seedCommunity(items, ids) {
 
   // Reviews.
   must(await db.from('reviews').delete().eq('is_seed', true), 'reviews clear');
-  const reviewRows = [
-    [1, 'Iced Spanish Latte', 5, 'Exactly what a 9 AM lab needs.', 'Aisha'], [2, 'V60', 4, 'Clean and bright.', 'Omar'],
-    [3, 'Iced Saffron Spanish Latte', 5, 'The saffron is the whole point.', 'Lina'], [4, "Pash n' Shoot Smoothie", 5, 'Tastes like real fruit.', 'Zayn'],
-    [2, 'Acai Bowl', 4, 'Filling between classes.', 'Omar'], [3, 'Iced Spanish Latte', 4, 'Reliable every time.', 'Lina'],
-  ];
-  must(await db.from('reviews').insert(reviewRows.map(([n, item, rating, body, author_name]) => ({
-    user_id: s(n), menu_item_id: byName[item].id, rating, body, author_name, is_seed: true,
-  }))), 'reviews');
+  must(await db.from('reviews').insert(reviewRows(byName, s)), 'reviews');
 
   must(await db.from('drink_submissions').delete().eq('is_seed', true), 'lab clear');
 

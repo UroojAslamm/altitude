@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  bestDiscount, commonHourLabel, commonHourLeft, etaLabel, etaSeconds, freeShotFils, lineTotal, metersFor, pinFavorites, prepItem, squadBonus, tierFor, tierProgress,
+  bestDiscount, commonHourLabel, commonHourLeft, etaLabel, etaSeconds, freeShotFils, lineTotal, metersFor, pinFavorites, prepItem, squadBonus, tierFor, tierProgress, withArticle,
 } from '@/lib/rules';
 
 describe('pricing', () => {
@@ -81,6 +81,12 @@ describe('owner review helpers', () => {
     const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
     expect(pinFavorites(items, new Set(['c', 'b'])).map((i) => i.id)).toEqual(['b', 'c', 'a', 'd']);
     expect(pinFavorites(items, undefined)).toBe(items);
+  });
+
+  it('picks a or an from the item name', () => {
+    expect(withArticle('Acai Bowl')).toBe('an Acai Bowl');
+    expect(withArticle('Iced Latte')).toBe('an Iced Latte');
+    expect(withArticle('Croissant')).toBe('a Croissant');
   });
 
   it('shows the first drink of a mixed order, or the first item if there is no drink', () => {

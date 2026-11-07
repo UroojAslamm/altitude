@@ -9,7 +9,7 @@ import { SocialButtons } from '@/components/SocialButtons';
 import { Badge, Card, cx, Modal, Button, ProgressRing, Skeleton, TIER_LABEL, TierShield } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useMenu, useMyOrders, useRealtime, useSettings } from '@/lib/queries';
-import { aed, commonHourLabel, commonHourLeft, tierFor, tierProgress } from '@/lib/rules';
+import { aed, commonHourLabel, commonHourLeft, tierFor, tierProgress, withArticle } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { MenuItem } from '@/lib/types';
 
@@ -161,7 +161,7 @@ export function HomePage() {
                 </div>
                 <DrinkArt kind={dotmItem.kind} accent={dotmItem.accent_color} name={dotmItem.name} size={120} />
               </div>
-              {home.data.pairing && <p className="relative mt-3 text-sm text-cream-100">{home.data.pairing.pct}% of students who order this add a {home.data.pairing.pair_name}.</p>}
+              {home.data.pairing && <p className="relative mt-3 text-sm text-cream-100">{home.data.pairing.pct}% of students who order this add {withArticle(home.data.pairing.pair_name)}.</p>}
             </Link>
           )}
           <div className="space-y-4">

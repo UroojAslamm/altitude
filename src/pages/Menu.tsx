@@ -12,7 +12,7 @@ import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
 import { EMPTY_FILTERS, useMenuFilters } from '@/lib/menuFilters';
 import { useItemOptions, useMenu, useRealtime } from '@/lib/queries';
-import { aed, pinFavorites } from '@/lib/rules';
+import { aed, pinFavorites, withArticle } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { MenuItem, Option } from '@/lib/types';
 
@@ -201,7 +201,7 @@ function Pairing({ itemId }: { itemId: string }) {
     },
   });
   if (!pairing.data) return null;
-  return <p className="text-sm text-glow-300">{pairing.data.pct}% of students who order this add a {pairing.data.pair_name}.</p>;
+  return <p className="text-sm text-glow-300">{pairing.data.pct}% of students who order this add {withArticle(pairing.data.pair_name)}.</p>;
 }
 
 export function ItemDetailPage() {

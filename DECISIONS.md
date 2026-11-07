@@ -50,3 +50,4 @@ These override the PRD.
 - Bowls have their own prep loop: the bowl fills, then each topping drops in and settles. Other food still appears from the bottom up. A bowl with an admin photo uses the photo reveal.
 - Admin analytics counts seeded orders at 20.5 percent, for sales and order count alike, so 28-day sales read about AED 10,000 for the pitch. The seeded rows are unchanged. Real orders count in full. The figure falls slowly as seeded days leave the 28-day window. Top items still count every seeded order.
 - The app address is https://altitude-ascend.vercel.app. The first address, https://altitude-liart.vercel.app, still works.
+- Every menu item has two sample reviews from the demo accounts, at the owner's request, in `scripts/reviews.mjs`. They are marked `is_seed`, and must be deleted before real launch.

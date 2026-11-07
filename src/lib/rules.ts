@@ -117,6 +117,11 @@ export function prepItem<L extends { menu_item_id: string }, M extends { id: str
   return matched.find((m) => m.item && m.item.kind !== 'bakery') ?? matched[0];
 }
 
+/** "a Latte" or "an Acai Bowl". */
+export function withArticle(name: string) {
+  return `${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}`;
+}
+
 export function pinFavorites<T extends { id: string }>(items: T[], favorites: ReadonlySet<string> | undefined) {
   if (!favorites?.size) return items;
   return [...items.filter((i) => favorites.has(i.id)), ...items.filter((i) => !favorites.has(i.id))];
