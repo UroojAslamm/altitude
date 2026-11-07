@@ -49,3 +49,4 @@ These override the PRD.
 - While the pitch timer is on, the tracker still shows a 7 to 10 minute wait, picked from the order number, at the owner's request. The figure is for show: the order reaches Ready on the timer. With the timer at 0 the tracker shows the real estimate.
 - Bowls have their own prep loop: the bowl fills, then each topping drops in and settles. Other food still appears from the bottom up. A bowl with an admin photo uses the photo reveal.
 - Admin analytics counts seeded orders at 20.5 percent, for sales and order count alike, so 28-day sales read about AED 10,000 for the pitch. The seeded rows are unchanged. Real orders count in full. The figure falls slowly as seeded days leave the 28-day window. Top items still count every seeded order.
+- The app address is https://altitude-ascend.vercel.app. The first address, https://altitude-liart.vercel.app, still works.

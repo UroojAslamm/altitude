@@ -1,7 +1,7 @@
 # ideaForge submission: Team Pythons
 
 **App:** ASCEND by Altitude
-**Live URL:** https://altitude-liart.vercel.app
+**Live URL:** https://altitude-ascend.vercel.app
 **Repo:** https://github.com/UroojAslamm/altitude
 
 ## Try it
