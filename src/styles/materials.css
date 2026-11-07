@@ -227,6 +227,21 @@
 .prep-food {
   animation: prep-food 8s ease-in-out infinite;
 }
+.prep-bowl-fill {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: prep-bowl-fill 8s ease-in-out infinite;
+}
+.prep-bowl-pour {
+  opacity: 0;
+  animation: prep-bowl-pour 8s ease-in-out infinite;
+}
+.prep-toppings {
+  animation: prep-toppings 8s linear infinite;
+}
+.prep-drop {
+  animation: prep-drop 8s linear infinite;
+}
 .prep-flow {
   animation: prep-flow 900ms linear infinite;
 }
@@ -287,6 +302,71 @@
   100% {
     opacity: 0;
     clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes prep-bowl-fill {
+  0% {
+    opacity: 0;
+    transform: scale(0.12);
+  }
+  4% {
+    opacity: 1;
+    transform: scale(0.12);
+  }
+  42%, 90% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+@keyframes prep-bowl-pour {
+  0% {
+    opacity: 0;
+  }
+  4%, 38% {
+    opacity: 1;
+  }
+  44%, 100% {
+    opacity: 0;
+  }
+}
+/* Hides the toppings between loops, so their staggered delays never show at the restart. */
+@keyframes prep-toppings {
+  0%, 44% {
+    opacity: 0;
+  }
+  45%, 90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes prep-drop {
+  0%, 44% {
+    opacity: 0;
+    transform: translateY(-62px);
+    animation-timing-function: ease-in;
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(-62px);
+    animation-timing-function: ease-in;
+  }
+  52% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  54.5% {
+    transform: translateY(-3px);
+    animation-timing-function: ease-in;
+  }
+  57%, 100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 @keyframes prep-flow {

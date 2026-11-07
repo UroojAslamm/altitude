@@ -45,3 +45,4 @@ These override the PRD.
 - The X on order history sets `orders.hidden_at` through `hide_order`. Nothing is deleted, so analytics, meters, and barista records are unchanged. Only completed and cancelled orders can be hidden. The list shows the last 10 visible orders.
 - Menu search, category, and filters are kept in memory until the page reloads, so they survive opening an item and returning.
 - "Counter" is now "Barista" on the staff screens. "Student view" is gone from the admin header. Students still pick up "at the counter", which is the physical place.
+- Bowls have their own prep loop: the bowl fills, then each topping drops in and settles. Other food still appears from the bottom up. A bowl with an admin photo uses the photo reveal.
