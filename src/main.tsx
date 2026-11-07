@@ -8,10 +8,12 @@ import '@fontsource/barlow-condensed/700.css';
 import './styles/index.css';
 import App from './App';
 import { ToastProvider } from './components/ui';
+import { watchForAppUpdates } from './lib/appUpdate';
 import { AuthProvider } from './lib/auth';
 
 if ((navigator.hardwareConcurrency ?? 8) < 4) document.documentElement.classList.add('low-end');
 document.body.classList.add('surface-obsidian');
+watchForAppUpdates();
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 15_000, refetchOnWindowFocus: true } },
