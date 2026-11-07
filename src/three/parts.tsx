@@ -1,6 +1,6 @@
 import { ContactShadows, Environment, Lightformer } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { isMobile } from './support';
 
@@ -37,58 +37,190 @@ export function useCupGeometry() {
   }, []);
 }
 
-/** Canvas texture for the cup wall: white paper with the navy wordmark and traced symbol. */
-export function useCupTexture() {
-  const invalidate = useThree((s) => s.invalidate);
-  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    const canvas = document.createElement('canvas');
-    canvas.width = 2048;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d')!;
+// The takeaway cup, modelled on the real Altitude double-wall cup: an outer sleeve that stops
+// short of the base, a recessed inner cup under it, and a rolled lip.
+const WALL_BOTTOM = 0.3;
+const WALL_TOP = 2.1;
+const lathe = (points: Array<[number, number]>, segments = 96) =>
+  new THREE.LatheGeometry(points.map(([x, y]) => new THREE.Vector2(x, y)), segments);
+
+function lipProfile() {
+  const points: Array<[number, number]> = [[0.948, 2.09], [0.958, WALL_TOP]];
+  for (let i = 0; i <= 12; i++) {
+    const a = -Math.PI * 0.35 + (i / 12) * Math.PI * 1.35;
+    points.push([0.948 + Math.cos(a) * 0.05, 2.125 + Math.sin(a) * 0.05]);
+  }
+  points.push([0.915, 2.1], [0.88, 1.9]);
+  return points;
+}
+
+function useCupParts() {
+  return useMemo(() => {
+    const wall = lathe([[0.722, WALL_BOTTOM - 0.012], [0.74, WALL_BOTTOM], [0.958, WALL_TOP]]);
+    const pos = wall.attributes.position!;
+    const uv = wall.attributes.uv!;
+    for (let i = 0; i < pos.count; i++) uv.setY(i, (pos.getY(i) - WALL_BOTTOM) / (WALL_TOP - WALL_BOTTOM));
+    return {
+      wall,
+      base: lathe([[0, 0], [0.62, 0], [0.665, 0.012], [0.68, 0.04], [0.712, WALL_BOTTOM + 0.02]]),
+      lip: lathe(lipProfile()),
+    };
+  }, []);
+}
+
+interface CupArt { map: THREE.CanvasTexture; bump: THREE.CanvasTexture; crema: THREE.CanvasTexture; shadow: THREE.CanvasTexture }
+
+function paperGrain() {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 512;
+  const g = c.getContext('2d')!;
+  const image = g.createImageData(512, 512);
+  for (let i = 0; i < image.data.length; i += 4) {
+    const v = 118 + Math.random() * 20;
+    image.data[i] = image.data[i + 1] = image.data[i + 2] = v;
+    image.data[i + 3] = 255;
+  }
+  g.putImageData(image, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(5, 2);
+  return t;
+}
+
+function cremaTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 512;
+  const g = c.getContext('2d')!;
+  const grad = g.createRadialGradient(256, 256, 20, 256, 256, 256);
+  grad.addColorStop(0, '#7A4A25');
+  grad.addColorStop(0.72, '#9A6534');
+  grad.addColorStop(1, '#C49358');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 900; i++) {
+    g.fillStyle = `rgba(232,196,146,${Math.random() * 0.1})`;
+    g.beginPath();
+    g.arc(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 5, 0, Math.PI * 2);
+    g.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function shadowTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 256;
+  const g = c.getContext('2d')!;
+  const grad = g.createRadialGradient(128, 128, 30, 128, 128, 128);
+  grad.addColorStop(0, 'rgba(0,0,0,.72)');
+  grad.addColorStop(0.55, 'rgba(0,0,0,.42)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+}
+
+/** Printed wall: paper white, the arched wordmark and symbol at u = 0.5, the glue seam at u = 0. */
+function drawWall(img: HTMLImageElement) {
+  const W = 3072;
+  const H = 1064;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#FCFBF8';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(70,58,44,.16)';
+  ctx.fillRect(0, 0, 5, H);
+  ctx.fillStyle = 'rgba(70,58,44,.06)';
+  ctx.fillRect(5, 0, 26, H);
+
+  // Letters sit on a shallow arc, as they do on the real cup.
+  const word = 'ALTITUDE';
+  const radius = 1500;
+  ctx.fillStyle = '#2B3F91';
+  ctx.font = '700 142px "Barlow Condensed", sans-serif';
+  ctx.textAlign = 'center';
+  const tracking = 11;
+  const widths = [...word].map((ch) => ctx.measureText(ch).width + tracking);
+  const total = widths.reduce((a, b) => a + b, 0);
+  let x = -total / 2;
+  [...word].forEach((ch, i) => {
+    const a = (x + widths[i]! / 2) / radius;
+    ctx.save();
+    ctx.translate(W / 2 + Math.sin(a) * radius, 450 + radius - Math.cos(a) * radius);
+    ctx.rotate(a);
+    ctx.fillText(ch, 0, 0);
+    ctx.restore();
+    x += widths[i]!;
+  });
+  const w = 410;
+  ctx.drawImage(img, W / 2 - w / 2, 492, w, (w * img.height) / img.width);
+
+  const t = new THREE.CanvasTexture(canvas);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+// One shared copy: the tracker can show up to eight small cups in the queue.
+let cupArt: Promise<CupArt> | null = null;
+function loadCupArt() {
+  cupArt ??= (async () => {
     const img = new Image();
     img.src = '/brand/logo-mark.svg';
-    Promise.all([img.decode(), document.fonts.load('700 120px "Barlow Condensed"')]).then(() => {
+    await Promise.all([img.decode(), document.fonts.load('700 142px "Barlow Condensed"')]);
+    return { map: drawWall(img), bump: paperGrain(), crema: cremaTexture(), shadow: shadowTexture() };
+  })();
+  return cupArt;
+}
+
+function useCupArt() {
+  const invalidate = useThree((s) => s.invalidate);
+  const [art, setArt] = useState<CupArt | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadCupArt().then((a) => {
       if (cancelled) return;
-      ctx.fillStyle = '#FBFAF6';
-      ctx.fillRect(0, 0, 2048, 1024);
-      // Art sits at u = 0.5, the far side of the lathe. PaperCup turns it to face front.
-      ctx.save();
-      ctx.translate(1024, 470);
-      ctx.fillStyle = '#2E3C93';
-      ctx.font = '700 130px "Barlow Condensed", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('ALTITUDE', 0, -80);
-      const w = 300;
-      ctx.drawImage(img, -w / 2, -50, w, (w * img.height) / img.width);
-      ctx.restore();
-      const t = new THREE.CanvasTexture(canvas);
-      t.colorSpace = THREE.SRGBColorSpace;
-      t.anisotropy = 4;
-      setTexture(t);
+      setArt(a);
       invalidate();
     }).catch(() => undefined);
     return () => { cancelled = true; };
   }, [invalidate]);
-  return texture;
+  return art;
 }
 
-export function PaperCup(props: JSX.IntrinsicElements['group']) {
-  const geometry = useCupGeometry();
-  const texture = useCupTexture();
+const PAPER = { roughness: 0.82, metalness: 0, envMapIntensity: 0.55, side: THREE.DoubleSide };
+
+export const PaperCup = forwardRef<THREE.Group, JSX.IntrinsicElements['group']>(function PaperCup(props, ref) {
+  const { wall, base, lip } = useCupParts();
+  const art = useCupArt();
   return (
-    <group {...props}>
-      <mesh geometry={geometry} castShadow rotation={[0, Math.PI, 0]}>
-        <meshPhysicalMaterial key={texture ? 'art' : 'plain'} map={texture} color={texture ? '#FFFFFF' : '#F4EFE6'} roughness={0.42} clearcoat={0.5} clearcoatRoughness={0.35} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0, 2.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.86, 48]} />
-        <meshPhysicalMaterial color="#3A2212" roughness={0.18} clearcoat={1} />
+    <group ref={ref} {...props}>
+      {art && (
+        <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[2.7, 2.7]} />
+          <meshBasicMaterial map={art.shadow} transparent depthWrite={false} />
+        </mesh>
+      )}
+      <group rotation={[0, Math.PI, 0]}>
+        <mesh geometry={wall}>
+          <meshStandardMaterial key={art ? 'art' : 'plain'} {...PAPER} map={art?.map ?? null} bumpMap={art?.bump ?? null} bumpScale={0.35} color={art ? '#FFFFFF' : '#F2EFE8'} />
+        </mesh>
+        <mesh geometry={base}><meshStandardMaterial {...PAPER} color="#E9E6DF" /></mesh>
+        <mesh geometry={lip}><meshStandardMaterial {...PAPER} color="#FBFAF6" /></mesh>
+      </group>
+      <mesh position={[0, 1.95, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.89, 64]} />
+        <meshPhysicalMaterial key={art ? 'crema' : 'plain'} map={art?.crema ?? null} color={art ? '#FFFFFF' : '#7A4A25'} roughness={0.34} clearcoat={0.5} clearcoatRoughness={0.3} />
       </mesh>
     </group>
   );
-}
+});
 
 export function shieldShape() {
   const s = new THREE.Shape();

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Clock, Facebook, Globe, Instagram, Music2, Sofa, Twitter, Zap } from 'lucide-react';
+import { Clock, Facebook, Globe, Instagram, Music2, Sofa, Star, Twitter, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Page } from '@/components/AppShell';
@@ -95,7 +95,7 @@ function ExamPopup({ announcement }: { announcement: Announcement }) {
   );
 }
 
-const SOCIAL = { instagram: Instagram, tiktok: Music2, x: Twitter, facebook: Facebook, website: Globe };
+const SOCIAL = { instagram: Instagram, tiktok: Music2, x: Twitter, facebook: Facebook, google: Star, website: Globe };
 
 export function HomePage() {
   const { profile, session } = useAuth();

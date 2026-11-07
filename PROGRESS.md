@@ -18,7 +18,7 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 
 ## Waiting on owner
 - Photo B (wall)
-- Vercel import of the GitHub repo
+- Confirm the alternative milk and extra shot charges
 
 ## Morning steps for the owner
 1. vercel.com > Add New > Project > import `UroojAslamm/altitude`. Framework: Vite.

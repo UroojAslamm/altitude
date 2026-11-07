@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Button, Card, useToast } from './ui';
 
 const SLICES = ['meters', 'free_shot', 'percent', 'free_croissant', 'none', 'free_drink'];
-const LABELS = ['+25 m', 'Shot', '10% off', 'Croissant', 'Again', 'Free drink'];
+const LABELS = ['+25 m', 'Shot', '10% off', 'Bite', 'Again', 'Free drink'];
 
 /** Metallic wheel. Spins only after a tap and settles in 1.8 s. The database picks the prize. */
 export function RewardWheel() {

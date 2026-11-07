@@ -12,10 +12,9 @@ async function login(page: Page, email: string, password = PASSWORD) {
   await page.waitForURL((u) => !u.pathname.startsWith('/login'));
 }
 
-async function order(page: Page, item = 'Cold Brew') {
+async function order(page: Page, item = 'Iced Americano') {
   await page.goto('/menu');
   await page.locator('[data-testid="menu-item"]', { hasText: item }).first().click();
-  await page.getByRole('button', { name: /^Small/ }).click();
   await page.getByRole('button', { name: 'Add to cart' }).click();
   await page.waitForURL('**/menu');
   await page.goto('/checkout');
@@ -83,17 +82,17 @@ test('double click on Place order makes one order', async ({ page }) => {
 test('sold-out toggle blocks adding in real time', async ({ page, browser }) => {
   await login(page, 'student3@altitude.demo');
   await page.goto('/menu');
-  await page.locator('[data-testid="menu-item"]', { hasText: 'Espresso' }).first().click();
-  await expect(page.getByRole('button', { name: /Choose a Size|Add to cart/ })).toBeEnabled({ timeout: 10_000 }).catch(() => undefined);
+  await page.locator('[data-testid="menu-item"]', { hasText: 'Espresso 20g' }).first().click();
+  await expect(page.getByRole('button', { name: /Add to cart/ })).toBeEnabled({ timeout: 10_000 }).catch(() => undefined);
 
   const barista = await baristaPage(browser);
   await barista.getByRole('button', { name: 'Sold out' }).click();
-  await barista.getByRole('switch', { name: 'Espresso available' }).click();
+  await barista.getByRole('switch', { name: 'Espresso 20g available' }).click();
 
   await expect(page.getByRole('button', { name: 'Sold out' })).toBeDisabled({ timeout: 20_000 });
 
-  await barista.getByRole('switch', { name: 'Espresso available' }).click();
-  await expect(barista.getByRole('switch', { name: 'Espresso available' })).toHaveAttribute('aria-checked', 'true');
+  await barista.getByRole('switch', { name: 'Espresso 20g available' }).click();
+  await expect(barista.getByRole('switch', { name: 'Espresso 20g available' })).toHaveAttribute('aria-checked', 'true');
   await barista.context().close();
 });
 
@@ -131,7 +130,7 @@ test('squad: create, join, order, bonus appears', async ({ browser }) => {
   await b.getByRole('button', { name: 'Join', exact: true }).click();
   await expect(b.getByTestId('squad-code')).toHaveText(code);
 
-  await order(a, 'Latte');
+  await order(a, 'Cafe Latte');
   const no = await placeAndGetNumber(a);
   const barista = await baristaPage(browser);
   const card = barista.getByTestId(`order-${no}`);

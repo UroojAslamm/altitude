@@ -179,13 +179,23 @@ function Range() {
   );
 }
 
+/** One full turn across the part of the scroll where the cup is on screen. Scroll only, so nothing loops. */
+function ScrollCup({ progress }: { progress: RefObject<number> }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (ref.current) ref.current.rotation.y = ((progress.current ?? 0) / 0.3) * Math.PI * 2;
+  });
+  return <PaperCup ref={ref} />;
+}
+
 function Scene({ progress }: { progress: RefObject<number> }) {
   return (
     <>
       <CameraRig progress={progress} />
       <Studio />
       <OakSlab />
-      <PaperCup />
+      <directionalLight position={[1.5, 3, 7]} intensity={1.15} color="#FFFFFF" />
+      <ScrollCup progress={progress} />
       <RingLight />
       <Shafts />
       <Mist />

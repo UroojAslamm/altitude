@@ -96,13 +96,19 @@ function MenuTab() {
           <h2 className="mb-2 text-2xl">{c.name}</h2>
           <ul className="space-y-1">
             {menu.data.items.filter((i) => i.category_id === c.id).map((i) => (
-              <li key={i.id} className="glass flex min-h-[52px] flex-wrap items-center gap-2 rounded-xl px-3 py-1.5">
-                <span className="min-w-0 flex-1 font-semibold">{i.name}</span>
-                {i.is_placeholder_price && <Badge tone="warning">Placeholder price</Badge>}
-                {i.needs_review && <Badge tone="warning">Needs review</Badge>}
-                <span className="tabular text-sm">{aed(i.base_price_fils)}</span>
-                <Button variant="secondary" onClick={() => void save(supabase.from('menu_items').update({ is_available: !i.is_available }).eq('id', i.id))}>{i.is_available ? 'Available' : 'Sold out'}</Button>
-                <Button variant="ghost" onClick={() => setEditing(i)}>Edit</Button>
+              <li key={i.id} className="glass space-y-1 rounded-xl px-3 py-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="min-w-0 break-words font-semibold">{i.name}</span>
+                  <span className="tabular shrink-0 text-sm">{aed(i.base_price_fils)}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {i.is_placeholder_price && <Badge tone="warning">Placeholder price</Badge>}
+                  {i.needs_review && <Badge tone="warning">Needs review</Badge>}
+                  <div className="ml-auto flex items-center gap-2">
+                    <Button variant="ghost" onClick={() => setEditing(i)}>Edit</Button>
+                    <Button variant="secondary" onClick={() => void save(supabase.from('menu_items').update({ is_available: !i.is_available }).eq('id', i.id))}>{i.is_available ? 'Available' : 'Sold out'}</Button>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
@@ -227,7 +233,7 @@ function EventsTab() {
     <ul className="space-y-2">
       {list.data?.map((e) => (
         <li key={e.id} className="glass flex flex-wrap items-center gap-2 rounded-xl p-3">
-          <span className="min-w-0 flex-1"><strong>{e.title}</strong> <span className="text-sm text-cream-300">{e.clubs?.name}, {dubaiDate(e.starts_at)}</span></span>
+          <span className="min-w-0 flex-1 basis-full sm:basis-0"><strong>{e.title}</strong> <span className="text-sm text-cream-300">{e.clubs?.name}, {dubaiDate(e.starts_at)}</span></span>
           <Badge tone={e.status === 'approved' ? 'success' : e.status === 'pending' ? 'warning' : 'error'}>{e.status}</Badge>
           {e.status === 'pending' && (
             <>
@@ -251,7 +257,7 @@ function LabTab() {
     <ul className="space-y-2">
       {list.data?.map((d) => (
         <li key={d.id} className="glass flex flex-wrap items-center gap-2 rounded-xl p-3">
-          <span className="min-w-0 flex-1"><strong>{d.name}</strong> <span className="tabular text-sm text-cream-300">by {d.author_name}, {d.vote_count} votes</span></span>
+          <span className="min-w-0 flex-1 basis-full sm:basis-0"><strong>{d.name}</strong> <span className="tabular text-sm text-cream-300">by {d.author_name}, {d.vote_count} votes</span></span>
           {d.promoted_item_id ? <Badge tone="brass">On menu</Badge> : <Button onClick={() => void save(supabase.rpc('promote_drink', { p_submission_id: d.id, p_price_fils: 2200 }), 'Added to the menu')}>Promote</Button>}
           <Button variant="secondary" onClick={() => void save(supabase.from('drink_submissions').update({ is_hidden: !d.is_hidden }).eq('id', d.id))}>{d.is_hidden ? 'Unhide' : 'Hide'}</Button>
         </li>
@@ -270,7 +276,7 @@ function ReviewsTab() {
     <ul className="space-y-2">
       {list.data?.map((r) => (
         <li key={r.id} className="glass flex items-center gap-2 rounded-xl p-3">
-          <span className="min-w-0 flex-1 break-words"><strong>{r.author_name}</strong> ({r.rating}/5) {r.body}</span>
+          <span className="min-w-0 flex-1 basis-full break-words sm:basis-0"><strong>{r.author_name}</strong> ({r.rating}/5) {r.body}</span>
           <Button variant="secondary" onClick={() => void save(supabase.from('reviews').update({ is_hidden: !r.is_hidden }).eq('id', r.id))}>{r.is_hidden ? 'Unhide' : 'Hide'}</Button>
         </li>
       ))}
@@ -357,7 +363,7 @@ function SettingsTab() {
   useEffect(() => { if (settings.data && !f) setF(settings.data); }, [settings.data, f]);
   if (!f) return <Skeleton className="h-60" />;
   const num = (v: string) => Number(v) || 0;
-  const social = ['instagram', 'tiktok', 'x', 'facebook', 'website'];
+  const social = ['instagram', 'tiktok', 'x', 'facebook', 'google', 'website'];
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>

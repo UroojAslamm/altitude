@@ -36,7 +36,7 @@ All use `@altitude.demo` and the password in `DEMO_PASSWORD`. The login screen a
 
 - **Demo payment:** `MockPaymentProvider` always succeeds. No card is charged. `MobiposPaymentProvider` is a documented stub, built to plug into MOBIPOS. It is not integrated.
 - **Demo data:** about 2,000 seeded orders (`is_seed = true`). Popular picks, pairing percentages, and busy times are computed from real rows, seeded plus live.
-- **Placeholder prices:** every menu price is a placeholder until the cafe confirms it. Admin shows a tag.
+- **Menu and prices:** items, descriptions, and prices come from the cafe's own menu page. The AED 3 alternative milk and AED 4 extra shot charges are still placeholders, because that page gives no amount.
 - **Recommendation engine:** deterministic rules plus current Dubai weather. No LLM.
 - **Always open:** `demo_always_open` is on during the event so judges can order at any time. Turn it off in Admin, Settings.
 
