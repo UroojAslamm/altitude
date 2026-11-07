@@ -4,7 +4,7 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 
 | # | Milestone | Status |
 |---|---|---|
-| M0 | Credentials, repo, Vite, tokens, materials, brand jobs, kit, migrations, auth, PWA, deploy | Done except Vercel deploy (owner imports repo). All migrations applied via SQL editor because DATABASE_URL password never reached disk. Seed works over HTTPS |
+| M0 | Credentials, repo, Vite, tokens, materials, brand jobs, kit, migrations, auth, PWA, deploy | Done. Vercel deploy live at https://altitude-liart.vercel.app. All migrations applied via SQL editor because DATABASE_URL password never reached disk. Seed works over HTTPS |
 | M1 | Seed, DrinkArt, menu, item detail, cart, place_order, pricing tests | Done, e2e green |
 | M2 | Tracker, barista, meters, tiers, golden path e2e | Done, e2e green |
 | M3 | Admin, favorites, popular, offers, Common Hour | Done, e2e green |
@@ -13,7 +13,7 @@ Deadline: submit by Sun 8 Nov 2026, 11:00 Dubai (hard limit 12:00).
 | M6 | 3D shield, cup, landing | Done. Golden path passes with 3D on and off |
 | M7 |  Drink Lab, wheel, vouchers, mood, pairing, analytics, /demo  | Done |
 | M8 | Bug bash, README, final e2e | Done, e2e green |
-| M9 | Final deploy and SUBMISSION.md | SUBMISSION.md done. Deploy waits on owner Vercel import |
+| M9 | Final deploy and SUBMISSION.md | SUBMISSION.md done. Deployed to https://altitude-liart.vercel.app |
 | Extra | Pitch deck .pptx (Team Pythons) | Done: docs/ASCEND-pitch.pptx. Not rendered here (no LibreOffice), open and check it once |
 
 ## Waiting on owner
