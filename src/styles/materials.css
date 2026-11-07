@@ -212,18 +212,82 @@
   }
 }
 
-/* Order progress, shown only while a barista is making the order. */
+/* Order progress: one calm 8 second cycle while an order is open. Without motion, the finished drink shows. */
+.prep-fill {
+  transform: translateY(var(--prep-to));
+  animation: prep-fill 8s ease-in-out infinite;
+}
+.prep-pour {
+  opacity: 0;
+  animation: prep-pour 8s ease-in-out infinite;
+}
+.prep-reveal {
+  animation: prep-reveal 8s ease-in-out infinite;
+}
+.prep-food {
+  animation: prep-food 8s ease-in-out infinite;
+}
 .prep-flow {
-  animation: prep-flow 700ms linear infinite;
+  animation: prep-flow 900ms linear infinite;
 }
 .prep-wave {
-  animation: prep-wave 2.4s linear infinite;
+  animation: prep-wave 3s linear infinite;
 }
 .prep-steam {
   animation: prep-steam 3s ease-in-out infinite;
 }
 .prep-steam-late {
   animation-delay: 1.2s;
+}
+@keyframes prep-fill {
+  0% {
+    opacity: 1;
+    transform: translateY(var(--prep-from));
+  }
+  70%, 90% {
+    opacity: 1;
+    transform: translateY(var(--prep-to));
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--prep-to));
+  }
+}
+@keyframes prep-pour {
+  0% {
+    opacity: 0;
+  }
+  5%, 64% {
+    opacity: 1;
+  }
+  72%, 100% {
+    opacity: 0;
+  }
+}
+@keyframes prep-reveal {
+  0%, 58% {
+    opacity: 0;
+  }
+  70%, 90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes prep-food {
+  0% {
+    opacity: 1;
+    clip-path: inset(100% 0 0 0);
+  }
+  70%, 90% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+  }
 }
 @keyframes prep-flow {
   to {

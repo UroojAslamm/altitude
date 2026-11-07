@@ -213,8 +213,6 @@ export function TrackerPage() {
             accent={shown?.item?.accent_color ?? '#C99A5B'}
             name={shown?.line.name_snapshot ?? 'Your order'}
             imageUrl={shown?.item?.image_url}
-            status={o.status}
-            preparingAt={o.preparing_at}
             more={(o.order_items?.length ?? 1) - 1}
           />
         ))}
