@@ -1,5 +1,5 @@
-import { Coffee, Mountain, Users } from 'lucide-react';
-import { lazy, Suspense, useState } from 'react';
+import { ChevronDown, Coffee, Mountain, Users } from 'lucide-react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo, PhotoBackdrop } from '@/components/brand';
 import { PublicSocialButtons } from '@/components/SocialButtons';
@@ -39,6 +39,36 @@ function Features({ compact = false }: { compact?: boolean }) {
   );
 }
 
+/** First screen only: tells a newcomer the page moves by scrolling. Gone after the first scroll. */
+function ScrollCue() {
+  const [top, setTop] = useState(true);
+  useEffect(() => {
+    const onScroll = () => setTop(window.scrollY < 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <button
+      type="button"
+      aria-label="Scroll down"
+      tabIndex={top ? 0 : -1}
+      onClick={(e) => { e.currentTarget.blur(); window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' }); }}
+      // Sits above the Start climbing and Log in buttons on phones, and in the corner on wider screens.
+      className={cx(
+        'fixed bottom-[calc(6.25rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex -translate-x-1/2 flex-col md:bottom-8 md:left-auto md:right-8 md:translate-x-0 items-center gap-1 rounded-full px-4 py-1 text-cream-50',
+        !top && 'pointer-events-none',
+      )}
+      style={{ opacity: top ? 1 : 0, visibility: top ? 'visible' : 'hidden', transition: `opacity 400ms ease, visibility 0s linear ${top ? '0s' : '400ms'}` }}
+    >
+      <span className="scroll-cue flex flex-col items-center gap-0.5">
+        <span className="text-xs font-semibold uppercase tracking-[0.25em] [text-shadow:0_1px_8px_rgba(0,0,0,.8)]">Scroll down</span>
+        <ChevronDown size={26} strokeWidth={2} className="text-glow-300 drop-shadow-[0_1px_6px_rgba(0,0,0,.8)]" />
+      </span>
+    </button>
+  );
+}
+
 /** Refined 2D landing. Also the fallback for The Ascent. */
 function FlatLanding() {
   return (
@@ -69,12 +99,15 @@ function FlatLanding() {
 
 export default function LandingPage() {
   const [use3d] = useState(can3d);
-  if (!use3d) return <FlatLanding />;
+  if (!use3d) return <><FlatLanding /><ScrollCue /></>;
   return (
-    <ThreeBoundary fallback={<FlatLanding />}>
-      <Suspense fallback={<FlatLanding />}>
-        <Ascent features={<Features compact />} cta={<Cta />} socials={<PublicSocialButtons />} />
-      </Suspense>
-    </ThreeBoundary>
+    <>
+      <ThreeBoundary fallback={<FlatLanding />}>
+        <Suspense fallback={<FlatLanding />}>
+          <Ascent features={<Features compact />} cta={<Cta />} socials={<PublicSocialButtons />} />
+        </Suspense>
+      </ThreeBoundary>
+      <ScrollCue />
+    </>
   );
 }

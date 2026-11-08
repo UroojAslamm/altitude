@@ -390,6 +390,21 @@
   }
 }
 
+/* Landing first screen only, until the visitor scrolls. */
+.scroll-cue {
+  animation: scroll-cue 1.8s ease-in-out infinite;
+}
+@keyframes scroll-cue {
+  0%, 100% {
+    opacity: 0.55;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(6px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
