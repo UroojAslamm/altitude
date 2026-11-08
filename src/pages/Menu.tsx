@@ -1,18 +1,18 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Heart, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart, Search, SlidersHorizontal, Sparkles, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Page, PageHeader } from '@/components/AppShell';
 import { DrinkArt } from '@/components/DrinkArt';
 import { MoodSheet } from '@/components/MoodSheet';
 import {
-  Badge, Button, Card, Chip, cx, EmptyState, ErrorState, Rating, Sheet, Skeleton, Slider, Stepper, useToast,
+  Badge, Button, Card, Chip, cx, EmptyState, ErrorState, Modal, Rating, Sheet, Skeleton, Slider, Stepper, useToast,
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
 import { EMPTY_FILTERS, useMenuFilters } from '@/lib/menuFilters';
 import { useItemOptions, useMenu, useRealtime } from '@/lib/queries';
-import { aed, pinFavorites, withArticle } from '@/lib/rules';
+import { aed, friendlyError, pinFavorites, withArticle } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { MenuItem, Option } from '@/lib/types';
 
@@ -170,24 +170,56 @@ export function MenuPage() {
 }
 
 function Reviews({ itemId }: { itemId: string }) {
+  const { session } = useAuth();
+  const uid = session?.user.id;
+  const client = useQueryClient();
+  const toast = useToast();
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
   const reviews = useQuery({
     queryKey: ['reviews', itemId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('reviews').select('id,author_name,rating,body').eq('menu_item_id', itemId).order('created_at', { ascending: false }).limit(10);
+      const { data, error } = await supabase.from('reviews').select('id,user_id,author_name,rating,body').eq('menu_item_id', itemId).order('created_at', { ascending: false }).limit(10);
       if (error) throw new Error(error.message);
-      return data as Array<{ id: string; author_name: string; rating: number; body: string }>;
+      return data as Array<{ id: string; user_id: string; author_name: string; rating: number; body: string }>;
     },
   });
+
+  // The database deletes only the signed-in student's own review.
+  async function remove() {
+    setBusy(true);
+    const { error } = await supabase.rpc('delete_review', { p_item_id: itemId });
+    toast(error ? friendlyError(error.message) : 'Your review is deleted', error ? 'error' : 'info');
+    await Promise.all([client.invalidateQueries({ queryKey: ['reviews', itemId] }), client.invalidateQueries({ queryKey: ['menu'] })]);
+    setBusy(false);
+    setConfirm(false);
+  }
+
   if (!reviews.data?.length) return null;
   return (
     <section className="space-y-2">
       <h2 className="text-2xl">Reviews</h2>
       {reviews.data.map((r) => (
         <Card key={r.id}>
-          <div className="flex items-center justify-between"><span className="font-semibold">{r.author_name}</span><Rating value={r.rating} size={16} /></div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-semibold">{r.author_name}{r.user_id === uid && <span className="ml-2 text-sm font-normal text-cream-300">(you)</span>}</span>
+            <div className="flex items-center gap-1">
+              <Rating value={r.rating} size={16} />
+              {r.user_id === uid && (
+                <Button variant="icon" aria-label="Delete your review" onClick={() => setConfirm(true)}><Trash2 size={18} strokeWidth={1.75} /></Button>
+              )}
+            </div>
+          </div>
           {r.body && <p className="mt-1 break-words text-cream-300">{r.body}</p>}
         </Card>
       ))}
+      <Modal open={confirm} onClose={() => setConfirm(false)} title="Delete your review?">
+        <p className="text-cream-300">This removes your rating and comment for this item.</p>
+        <div className="mt-4 flex gap-2">
+          <Button variant="secondary" className="flex-1" onClick={() => setConfirm(false)}>Keep it</Button>
+          <Button className="flex-1" disabled={busy} onClick={() => void remove()}>Delete</Button>
+        </div>
+      </Modal>
     </section>
   );
 }

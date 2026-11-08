@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Page, PageHeader } from '@/components/AppShell';
 import { PrepVisual } from '@/components/PrepVisual';
-import { Logo } from '@/components/brand';
+import { ReadyPanel } from '@/components/ReadyPanel';
 import {
   Badge, Button, Card, Chip, cx, EmptyState, ErrorState, Modal, Rating, Skeleton, TextArea, TIER_LABEL, TierShield, useToast, type Tier,
 } from '@/components/ui';
@@ -34,25 +34,6 @@ function StatusStepper({ status }: { status: OrderStatus }) {
         </li>
       ))}
     </ol>
-  );
-}
-
-function ReadyPanel({ order, onDone }: { order: Order; onDone: () => void }) {
-  return (
-    <div className="surface-obsidian fixed inset-0 z-50 grid place-items-center p-6 text-center" role="alertdialog" aria-label={`Ready, order ${order.order_no}`}>
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex justify-center drop-shadow-[0_0_18px_rgba(255,213,138,.5)]"><Logo size={96} /></div>
-        <div className="glass gloss halo rounded-3xl p-8">
-          <div className="relative">
-            <p className="font-display text-7xl font-bold uppercase tracking-wider text-glow-300">Ready</p>
-            <p className="tabular mt-2 text-2xl">Order #{order.order_no}</p>
-            <p className="mt-2 text-cream-300">Collect it at the counter.</p>
-            {order.prepared_by_name && <p className="text-cream-300">Prepared by {order.prepared_by_name}.</p>}
-            <Button className="mt-6 w-full" onClick={onDone}>I got it</Button>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -129,6 +110,7 @@ function RateDrink({ order }: { order: Order }) {
   const [rating, setRating] = useState(5);
   const [body, setBody] = useState('');
   const toast = useToast();
+  const client = useQueryClient();
   const first = order.order_items?.[0];
   if (!first) return null;
   return (
@@ -142,6 +124,7 @@ function RateDrink({ order }: { order: Order }) {
           onClick={async () => {
             const { error } = await supabase.rpc('submit_review', { p_item_id: first.menu_item_id, p_rating: rating, p_body: body });
             toast(error ? friendlyError(error.message) : 'Thanks for the review', error ? 'error' : 'info');
+            void client.invalidateQueries({ queryKey: ['reviews', first.menu_item_id] });
             setOpen(false);
           }}
         >

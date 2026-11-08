@@ -216,11 +216,11 @@ test('review dialog, barista name, tip, and ready pop-up off the order page', as
 
   await page.getByRole('link', { name: 'Menu' }).first().click();
   await card.getByRole('button', { name: 'Ready' }).click();
-  const popup = page.getByRole('dialog', { name: 'Your drink is ready' });
+  // The same full-screen Ready panel shows off the order page, and I got it picks the order up.
+  const popup = page.getByRole('alertdialog', { name: `Ready, order ${no}` });
   await expect(popup).toBeVisible({ timeout: 20_000 });
-  await popup.getByRole('button', { name: 'View order' }).click();
+  await popup.getByRole('button', { name: 'I got it' }).click();
   await page.waitForURL(tracker);
-  await page.getByRole('button', { name: 'I got it' }).click();
 
   await page.getByRole('button', { name: 'Rate your drink' }).click();
   const dialog = page.getByRole('dialog', { name: /^Rate / });

@@ -4,11 +4,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { playAlert } from '@/lib/chime';
 import { useMyOrders, useRealtime } from '@/lib/queries';
+import { friendlyError } from '@/lib/rules';
 import { supabase } from '@/lib/supabase';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Button, Modal } from './ui';
+import { ReadyPanel } from './ReadyPanel';
+import { useToast } from './ui';
 
-/** Sound and pop-up when a drink is ready, on whichever screen the student is on. */
+/** Sound and the Ready alert when a drink is ready, on whichever screen the student is on. */
 export function ReadyWatcher() {
   const { session } = useAuth();
   const uid = session?.user.id;
@@ -16,8 +18,10 @@ export function ReadyWatcher() {
   useRealtime([{ table: 'orders', filter: `user_id=eq.${uid}`, keys: [['orders']] }], `ready-${uid}`);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
   const seen = useRef<Map<string, OrderStatus> | null>(null);
   const [ready, setReady] = useState<Order | null>(null);
+  const [busy, setBusy] = useState(false);
   const client = useQueryClient();
   const waiting = orders.data?.some((o) => o.status === 'placed' || o.status === 'preparing') ?? false;
 
@@ -47,13 +51,22 @@ export function ReadyWatcher() {
     setReady(fresh);
   }, [orders.data]);
 
-  // The order's own page has a full-screen Ready panel.
-  const open = ready !== null && pathname !== `/orders/${ready.id}`;
-  return (
-    <Modal open={open} onClose={() => setReady(null)} title="Your drink is ready">
-      <p className="tabular text-cream-100">Order #{ready?.order_no}. Collect it at the counter.</p>
-      {ready?.prepared_by_name && <p className="text-cream-300">Prepared by {ready.prepared_by_name}.</p>}
-      <Button className="mt-4 w-full" onClick={() => { const id = ready?.id; setReady(null); if (id) navigate(`/orders/${id}`); }}>View order</Button>
-    </Modal>
-  );
+  // Picking it up here does what it does on the order page, then shows the meters earned there.
+  async function pickUp(order: Order) {
+    setBusy(true);
+    const { error } = await supabase.rpc('complete_order', { p_order_id: order.id });
+    if (error) toast(friendlyError(error.message), 'error');
+    await Promise.all([
+      client.invalidateQueries({ queryKey: ['order', order.id] }),
+      client.invalidateQueries({ queryKey: ['orders'] }),
+      client.invalidateQueries({ queryKey: ['profile', uid] }),
+    ]);
+    setBusy(false);
+    setReady(null);
+    navigate(`/orders/${order.id}`);
+  }
+
+  // The order's own page shows the same panel itself.
+  if (!ready || pathname === `/orders/${ready.id}`) return null;
+  return <ReadyPanel order={ready} busy={busy} onDone={() => void pickUp(ready)} />;
 }

@@ -53,3 +53,5 @@ These override the PRD.
 - Every menu item has two sample reviews from the demo accounts, at the owner's request, in `scripts/reviews.mjs`. They are marked `is_seed`, and must be deleted before real launch.
 - `docs/ASCEND by Altitude.pptx` is the 4-slide deck in the style of the team Canva design, for import into Canva. It drops claims the app does not meet: Club Summit, Group Carts as a live feature, "AI" mood picker, and the 3D cup.
 - The landing shows a pulsing "Scroll down" cue on its first screen, at the owner's request, because visitors tried tapping the machine. It fades out after the first scroll and can be tapped to scroll. Reduced motion keeps it still.
+- One Ready alert everywhere: the full-screen READY panel. Off the order page, its I got it picks the order up and opens the order page with the meters earned.
+- Students can delete their own review through `delete_review`, which deletes only rows with their user id. The delete button shows only on their own review.
