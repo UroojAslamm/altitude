@@ -10,6 +10,7 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
+import { pickedUp } from '@/lib/pickedUp';
 import { useMenu, useMyOrders, useOrder, useQueueInfo, useRealtime } from '@/lib/queries';
 import { aed, dubaiDate, dubaiTime, etaLabel, friendlyError, prepItem } from '@/lib/rules';
 import { payments } from '@/lib/payment';
@@ -142,6 +143,7 @@ export function TrackerPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const order = useOrder(orderId);
+  const [done, setDone] = useState(false);
   const menu = useMenu();
   const status = order.data?.status;
   const active = status === 'placed' || status === 'preparing';
@@ -161,8 +163,14 @@ export function TrackerPage() {
   }, [status, order.data]);
 
   async function complete() {
+    if (orderId) pickedUp.add(orderId);
+    setDone(true);
     const { error } = await supabase.rpc('complete_order', { p_order_id: orderId });
-    if (error) toast(friendlyError(error.message), 'error');
+    if (error) {
+      if (orderId) pickedUp.delete(orderId);
+      setDone(false);
+      toast(friendlyError(error.message), 'error');
+    }
     void client.invalidateQueries({ queryKey: ['order', orderId] });
     void client.invalidateQueries({ queryKey: ['profile', uid] });
     void client.invalidateQueries({ queryKey: ['orders'] });
@@ -181,7 +189,7 @@ export function TrackerPage() {
 
   return (
     <>
-      {o.status === 'ready' && <ReadyPanel order={o} onDone={() => void complete()} />}
+      {o.status === 'ready' && !done && !pickedUp.has(o.id) && <ReadyPanel order={o} onDone={() => void complete()} />}
       <PageHeader title={`Order #${o.order_no}`} subtitle={o.status === 'cancelled' ? 'Cancelled' : undefined} />
       <Page className="lg:max-w-2xl">
         {o.status !== 'cancelled' && <Card><StatusStepper status={o.status} /></Card>}

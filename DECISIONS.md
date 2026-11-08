@@ -55,3 +55,4 @@ These override the PRD.
 - The landing shows a pulsing "Scroll down" cue on its first screen, at the owner's request, because visitors tried tapping the machine. It fades out after the first scroll and can be tapped to scroll. Reduced motion keeps it still.
 - One Ready alert everywhere: the full-screen READY panel. Off the order page, its I got it picks the order up and opens the order page with the meters earned.
 - Students can delete their own review through `delete_review`, which deletes only rows with their user id. The delete button shows only on their own review.
+- `pickedUp` remembers, in the tab, which orders the student tapped I got it on. The order page and the global watcher both check it, so the Ready panel shows once.

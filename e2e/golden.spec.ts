@@ -221,6 +221,13 @@ test('review dialog, barista name, tip, and ready pop-up off the order page', as
   await expect(popup).toBeVisible({ timeout: 20_000 });
   await popup.getByRole('button', { name: 'I got it' }).click();
   await page.waitForURL(tracker);
+  // It must not come back, on the order page or anywhere else.
+  await page.waitForTimeout(3000);
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Home' }).click();
+  await page.waitForTimeout(2500);
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await page.goto(tracker);
 
   await page.getByRole('button', { name: 'Rate your drink' }).click();
   const dialog = page.getByRole('dialog', { name: /^Rate / });
