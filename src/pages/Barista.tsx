@@ -126,12 +126,15 @@ export default function BaristaPage() {
     'barista-live',
   );
 
-  const seen = useRef<Set<string> | null>(null);
+  // Sound for a new order, and for any order that turns Ready, whoever or whatever moved it.
+  const seen = useRef<Map<string, OrderStatus> | null>(null);
   useEffect(() => {
     if (!orders.data) return;
-    const ids = new Set(orders.data.map((o) => o.id));
-    if (seen.current && orders.data.some((o) => !seen.current!.has(o.id) && o.status === 'placed')) playAlert('new_order');
-    seen.current = ids;
+    const before = seen.current;
+    seen.current = new Map(orders.data.map((o) => [o.id, o.status]));
+    if (!before) return;
+    if (orders.data.some((o) => o.status === 'ready' && before.get(o.id) !== 'ready')) playAlert('ready');
+    else if (orders.data.some((o) => !before.has(o.id) && o.status === 'placed')) playAlert('new_order');
   }, [orders.data]);
 
   const columns = useMemo(() => {
