@@ -42,6 +42,40 @@ function AuthFrame({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
+/** Demo sign-in for judges, on both the log-in and sign-up pages. Root sends each role to its home. */
+function DemoLogin() {
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const [staff, setStaff] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (!env.demoLogin || !env.demoPassword) return null;
+
+  async function login(email: string) {
+    setBusy(true);
+    setError(null);
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password: env.demoPassword });
+    setBusy(false);
+    if (err) setError('The demo account is not available right now.');
+    else navigate('/', { replace: true });
+  }
+
+  return (
+    <div className="mt-4 space-y-2">
+      <div className="brass-rule" />
+      <Button variant="secondary" disabled={busy} className="w-full" onClick={() => void login(DEMO_STUDENT)}>Try as Student</Button>
+      <Button variant="secondary" disabled={busy} className="w-full" aria-expanded={staff} onClick={() => setStaff(!staff)}>Try as Staff</Button>
+      {staff && (
+        <div className="grid grid-cols-2 gap-2">
+          {DEMO_STAFF.map((d) => (
+            <Button key={d.email} disabled={busy} onClick={() => void login(d.email)}>{d.label}</Button>
+          ))}
+        </div>
+      )}
+      {error && <p role="alert" className="text-center text-sm text-berry-500">{error}</p>}
+    </div>
+  );
+}
+
 export function LoginPage() {
   const { session, profile } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +83,6 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [staff, setStaff] = useState(false);
 
   if (session && profile) return <Navigate to={homeFor(profile.role)} replace />;
 
@@ -78,20 +111,7 @@ export function LoginPage() {
       <p className="mt-3 text-center text-sm text-cream-300">
         New here? <Link to="/signup" className="text-glow-300 underline">Start climbing</Link>
       </p>
-      {env.demoLogin && env.demoPassword && (
-        <div className="mt-4 space-y-2">
-          <div className="brass-rule" />
-          <Button variant="secondary" disabled={busy} className="w-full" onClick={() => void login(DEMO_STUDENT, env.demoPassword)}>Try as Student</Button>
-          <Button variant="secondary" disabled={busy} className="w-full" aria-expanded={staff} onClick={() => setStaff(!staff)}>Try as Staff</Button>
-          {staff && (
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_STAFF.map((d) => (
-                <Button key={d.email} disabled={busy} onClick={() => void login(d.email, env.demoPassword)}>{d.label}</Button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <DemoLogin />
     </AuthFrame>
   );
 }
@@ -151,6 +171,7 @@ export function SignupPage() {
       <p className="mt-3 text-center text-sm text-cream-300">
         Already climbing? <Link to="/login" className="text-glow-300 underline">Log in</Link>
       </p>
+      <DemoLogin />
     </AuthFrame>
   );
 }

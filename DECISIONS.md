@@ -57,3 +57,4 @@ These override the PRD.
 - Students can delete their own review through `delete_review`, which deletes only rows with their user id. The delete button shows only on their own review.
 - `pickedUp` remembers, in the tab, which orders the student tapped I got it on. The order page and the global watcher both check it, so the Ready panel shows once.
 - The barista board plays the Ready sound when any order turns Ready, including by the pitch timer, and the new-order sound when an order comes in.
+- The sign-up page has the same Try as Student and Try as Staff buttons as the log-in page, so judges can enter from either.
